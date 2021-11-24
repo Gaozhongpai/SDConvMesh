@@ -5,7 +5,7 @@ from psbody.mesh import Mesh
 import torch
 import pickle
 
-mesh = Mesh(filename="/media/pai/Disk/data/dfaustData/template_color.ply")
+mesh = Mesh(filename="/media/pai/Disk/data/monoData/template.obj")
 with open(os.path.join('/media/pai/Disk/data/dfaustData/COMA_downsample','downsampling_matrices.pkl'), 'rb') as fp:
     #downsampling_matrices = pickle.load(fp,encoding = 'latin1')
     downsampling_matrices = pickle.load(fp)

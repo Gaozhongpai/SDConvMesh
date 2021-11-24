@@ -24,7 +24,7 @@ def frontalize(vertices, canonical_vertices):
 
     return front_vertices
 
-template = Mesh(filename='./data/template.obj')
+template = Mesh(filename='/media/pai/Disk/data/monoData/template.obj')
 
 nVal = 100        # args.num_valid
 root_dir = './'   # args.root_dir

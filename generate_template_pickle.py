@@ -9,14 +9,14 @@ from psbody.mesh import Mesh
 from graphlib import graph, coarsening, utils, mesh_sampling
 import pickle
 
-reference_mesh_file = "./data/template.obj"
-ds_factors = [4, 4, 4, 4]  
+reference_mesh_file = "/home/pai/data/manoposesv10/mano_poses_v1_0/template.ply"
+ds_factors = [2, 2, 2, 2]  
 # Generates adjecency matrices A, downsampling matrices D, and upsamling matrices U by sampling
 # the mesh 4 times. Each time the mesh is sampled by a factor of 4
 reference_mesh = Mesh(filename=reference_mesh_file)
 M, A, D, U = mesh_sampling.generate_transform_matrices(
     reference_mesh, ds_factors)
-pickle.dump([M, A, D, U], open("./data/pai_template.pkl", 'wb'))   
+pickle.dump([M, A, D, U], open("/media/pai/Disk/data/monoData/pai_template.pkl", 'wb'))   
 
 
 #%%

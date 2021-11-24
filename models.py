@@ -10,6 +10,7 @@ import math
 from attpool import AttPool, PaiAttPool, PaiAttPool2
 from math import ceil, sqrt
 from device import device
+import numpy as np
 
 class PaiConv(nn.Module):
     def __init__(self, num_pts, in_c, num_neighbor, out_c, activation='elu',bias=True): # ,device=None):
@@ -129,21 +130,14 @@ class PaiAutoencoder(nn.Module):
         self.U = nn.ParameterList(self.U)
 
         mappingsize = 64
-        self.B = nn.Parameter(torch.randn(6, mappingsize) , requires_grad=False)  
         self.o_vertices = t_vertices
-
-        # self.t_vertices = [torch.cat([x[self.x_neighbors[i]][:, 1:].mean(dim=1) - x, x], dim=-1) for i, x in enumerate(t_vertices)]
-        # # self.t_vertices = [x[self.x_neighbors[i]].permute(0, 2, 1).contiguous() for i, x in enumerate(t_vertices)]
-        # # t_vertices_repeat = [x[:, :, 0:1].expand_as(x) for x in self.t_vertices]
-        # # self.t_vertices = [torch.cat([x - t_vertices_repeat[i], t_vertices_repeat[i], 
-        # #                     torch.norm(x - t_vertices_repeat[i], dim=1, keepdim=True)], dim=1)
-        # #                     for i, x in enumerate(self.t_vertices)]
-        # # self.t_vertices = [F.normalize(x.view(x.shape[0], -1), dim=0) for x in self.t_vertices]
-        # self.t_vertices = [2.*math.pi*x @ (self.B.data).to(x) for x in self.t_vertices]
-        # self.t_vertices = [((x - x.min(dim=0, keepdim=True)[0]) / (x.max(dim=0, keepdim=True)[0] \
-        #                      - x.min(dim=0, keepdim=True)[0]) - 0.5)*100 for x in self.t_vertices]
-        # self.t_vertices = [torch.cat([torch.sin(x), torch.cos(x)], dim=-1) for x in self.t_vertices]
-
+        self.B = nn.Parameter(torch.randn(6, mappingsize) , requires_grad=False)  
+        self.t_vertices = [torch.cat([x[self.x_neighbors[i]][:, 1:].mean(dim=1) - x, x], dim=-1) for i, x in enumerate(t_vertices)]
+        self.t_vertices = [2.*math.pi*x @ (self.B.data).to(x) for x in self.t_vertices]
+        self.t_vertices = [((x - x.min(dim=0, keepdim=True)[0]) / (x.max(dim=0, keepdim=True)[0] \
+                             - x.min(dim=0, keepdim=True)[0]) - 0.5)*100 for x in self.t_vertices]
+        self.t_vertices = [torch.cat([torch.sin(x), torch.cos(x)], dim=-1) for x in self.t_vertices]
+    
         self.eps = 1e-7
         #self.reset_parameters()
         #self.device = device
@@ -228,6 +222,11 @@ class PaiAutoencoder(nn.Module):
             x = self.attpoolenc[i](x) #, t_vertices[i]) #, t_vertices[i+1])
             # self.t_vertices[i+1] = self.attpoolenc[i](self.t_vertices[i][None]).squeeze().detach() #, t_vertices[i])#, t_vertices[i+1])
         # x = self.conv[-1](x, t_vertices[-1], S[-1].repeat(bsize,1,1))
+        # x[5] = x[2]
+        # x[5,4:6] = x[21, 4:6]  ## 34
+        # x[5,12:15] = x[21, 12:15]
+        # x[5,17:20] = x[34, 17:20]  ## 34
+        # x[5,23:27] = x[34, 23:27]
         x = x.view(bsize,-1)
         # x = x[:, :-1].view(bsize,-1)
         return self.fc_latent_enc(x)
@@ -263,7 +262,11 @@ class PaiAutoencoder(nn.Module):
 
     def forward(self,x):
         bsize = x.size(0)
+        # alpha = torch.linspace(0, 1, steps=5).cuda().unsqueeze(1)
         self.update()
         z = self.encode(x)
+        # z[0] = z[18] - z[7] + z[8]
+        # z[0], z[1] = z[18], z[29] ## z[23], z[26]
+        # z[2:7] = alpha * z[0:1] + (1-alpha)*z[1:2]
         x = self.decode(z)
         return x

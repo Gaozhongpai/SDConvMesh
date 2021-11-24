@@ -326,8 +326,8 @@ class PaiAttPool2(nn.Module):
         # nn.init.normal_(self.key, mean=init_1, std=init_2)
 
     def gen_map(self, score=None):  
-        score = torch.tanh((self.key))
-        # score = torch.clamp(self.key, self.SCORE_MIN, self.SCORE_MAX)     
+        # score = torch.tanh((self.key))
+        score = torch.clamp(self.key, self.SCORE_MIN, self.SCORE_MAX)     
         if self.top_k == 0:
             topk_norm = self.norm(score)
         else:

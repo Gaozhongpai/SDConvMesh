@@ -28,7 +28,7 @@ from utils import IOStream
 
 from sklearn.metrics.pairwise import euclidean_distances
 meshpackage = 'trimesh' # 'mpi-mesh', trimesh'
-root_dir = '/media/pai/Disk/data/dfaustData'  # Neural3DMMdata'  # dfaustData'
+root_dir = '/media/pai/Disk/data/monoData'  # Neural3DMMdata'  # dfaustData' # monoData
 
 
 dataset = 'd3dfacs_alignments'
@@ -49,17 +49,21 @@ downsample_method = 'COMA_downsample' # choose'COMA_downsample' or 'meshlab_down
 # below are the arguments for the DFAUST run
 reference_mesh_file = os.path.join(root_dir, 'template.obj')
 downsample_directory = os.path.join(root_dir, downsample_method)
-ds_factors = [4, 4, 4, 4]
-kernal_size = [9, 9, 9, 9, 9]
-step_sizes = [2, 2, 1, 1, 1]
+ds_factors = [4, 4, 4]
+kernal_size = [9, 9, 9, 9] # , 9]
+step_sizes = [2, 2, 1, 1] #, 1]
 
-# ##
+## # monoData
+filter_sizes_enc = [3, 16, 32, 64]
+filter_sizes_dec = [64, 32, 32, 16, 3]
+
+# ## # Neural3DMMdata
 # filter_sizes_enc = [3, 32, 45, 64, 128]
 # filter_sizes_dec = [128, 80, 48, 32, 32, 3]
 
-# ##
-filter_sizes_enc = [3, 32, 42, 80, 128]
-filter_sizes_dec = [128, 80, 64, 40, 32, 3]
+# # ## dfaustData
+# filter_sizes_enc = [3, 32, 42, 80, 128]
+# filter_sizes_dec = [128, 80, 64, 40, 32, 3]
 
 
 args = {'generative_model': generative_model,
@@ -68,7 +72,7 @@ args = {'generative_model': generative_model,
         'reference_mesh_file':reference_mesh_file, 'downsample_directory': downsample_directory,
         'checkpoint_file': 'checkpoint',
         'seed':2, 'loss':'l1',
-        'batch_size':32, 'num_epochs':300, 'eval_frequency':200, 'num_workers': 8,
+        'batch_size':32, 'num_epochs':300, 'eval_frequency':200, 'num_workers': 4,
         'filter_sizes_enc': filter_sizes_enc, 'filter_sizes_dec': filter_sizes_dec,
         'nz':32,
         'ds_factors': ds_factors, 'step_sizes' : step_sizes,
@@ -241,9 +245,9 @@ if 'tiny-pooling-32-all-same' in args['generative_model']:
     model = torch.nn.DataParallel(model)
 
 trainables_wo_index = [param for name, param in model.named_parameters()
-                if param.requires_grad and 'adjweight' not in name]
+                if param.requires_grad and 'adjweight' not in name and 'key' not in name and 'weight_prior' not in name]
 trainables_wt_index = [param for name, param in model.named_parameters()
-                if param.requires_grad and 'adjweight' in name]
+                if param.requires_grad and 'adjweight' in name or 'key' in name or 'weight_prior' in name]
 optim = torch.optim.Adam([{'params': trainables_wo_index, 'weight_decay': args['regularization']},
                           {'params': trainables_wt_index}],
                           lr=args['lr'])
@@ -276,7 +280,7 @@ if args['mode'] == 'train':
     if args['resume']:
         print('loading checkpoint from file %s'%(os.path.join(checkpoint_path,args['checkpoint_file'])))
         checkpoint_dict = torch.load(os.path.join(checkpoint_path,args['checkpoint_file']+'.pth.tar'),map_location=device)
-        start_epoch = checkpoint_dict['epoch'] + 1
+        start_epoch = checkpoint_dict['epoch'] + 1 
         model_dict = model.state_dict()
         pretrained_dict = checkpoint_dict['autoencoder_state_dict']
         pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in model_dict}
