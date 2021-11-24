@@ -1,16 +1,16 @@
 
 
-# Learning Local Neighboring Structure for Robust 3D Shape Representation
+# Learning Spectral Dictionary for Local Representation of Mesh
 ![PaiNeural3DMM architecture](images/architecture.png "PaiNeural3DMM architecture")
-This repository is the official implementation of my paper: "Learning Local Neighboring Structure for Robust 3D Shape Representation"
+This repository is the official implementation of my paper: "Learning Spectral Dictionary for Local Representation of Mesh"
 # Project Abstract 
-Mesh is a powerful data structure for 3D shapes. Representation learning for 3D meshes is important in many computer vision and graphics applications. The recent success of convolutional neural networks (CNNs) for structured data (e.g., images) suggests the value of adapting insight from CNN for 3D shapes. However, 3D shape data are irregular since each node's neighbors are unordered. Various graph neural networks for 3D shapes have been developed with isotropic filters or predefined local coordinate systems to overcome the node inconsistency on graphs. However, isotropic filters or predefined local coordinate systems limit the representation power. In this paper, we propose a local structure-aware anisotropic convolutional operation (LSA-Conv) that learns adaptive weighting matrices for each node according to the local neighboring structure and performs shared anisotropic filters. In fact, the learnable weighting matrix is similar to the attention matrix in random synthesizer -- a new Transformer model for natural language processing (NLP). Comprehensive experiments demonstrate that our model produces significant improvement in 3D shape reconstruction compared to state-of-the-art methods. 
+Learning mesh representation is important for many 3D tasks. Conventional convolution for regular data (i.e., images) cannot directly be applied to meshes since each vertex's neighbors are unordered. Previous methods use isotropic filters or predefined local coordinate systems or learning weighting matrices for each template vertex to overcome the irregularity. Learning weighting matrices to resample the vertex's neighbors into an implicit canonical order is the most effective way to capture the local structure of each vertex. However, learning weighting matrices for each vertex increases the model size linearly with the vertex number. Thus, large parameters are required for high-resolution 3D shapes, which is not favorable for many applications. In this paper, we learn spectral dictionary (i.e., bases) for the weighting matrices such that the model size is independent of the resolution of 3D shapes. The coefficients of the weighting matrix bases are learned from the spectral features of the template and its hierarchical levels in a weight-sharing manner. Furthermore, we introduce an adaptive sampling method that learns the hierarchical mapping matrices directly to improve the performance without increasing the model size at the inference stage. Comprehensive experiments demonstrate that our model produces state-of-the-art results with much smaller model size.
 
-[Arxiv link](https://arxiv.org/abs/2004.09995)
+[IJCAI link](https://www.ijcai.org/proceedings/2021/95)
 
 ![Pai-Conv](images/pai-gcn.png "Pai-Conv operation")
 
-![Results](images/results.png "Results")
+![Results](images/complexity1.png "Results")
 
 # Repository Requirements
 
@@ -84,12 +84,18 @@ The structure of this codebase is borrowed from [Neural3DMM](https://github.com/
 Please consider citing our work if you find it useful:
 
 ```
-@misc{gao2020learning,
-    title={Learning Local Neighboring Structure for Robust 3D Shape Representation},
-    author={Zhongpai Gao and Guangtao Zhai and Juyong Zhang and Junchi Yan and Yiyan Yang and Xiaokang Yang},
-    year={2020},
-    eprint={2004.09995},
-    archivePrefix={arXiv},
-    primaryClass={cs.CV}
+@inproceedings{ijcai2021-95,
+  title     = {Learning Spectral Dictionary for Local Representation of Mesh},
+  author    = {Gao, Zhongpai and Yan, Junchi and Zhai, Guangtao and Yang, Xiaokang},
+  booktitle = {Proceedings of the Thirtieth International Joint Conference on
+               Artificial Intelligence, {IJCAI-21}},
+  publisher = {International Joint Conferences on Artificial Intelligence Organization},
+  editor    = {Zhi-Hua Zhou},
+  pages     = {685--692},
+  year      = {2021},
+  month     = {8},
+  note      = {Main Track}
+  doi       = {10.24963/ijcai.2021/95},
+  url       = {https://doi.org/10.24963/ijcai.2021/95},
 }
 ```
