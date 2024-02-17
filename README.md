@@ -26,15 +26,12 @@ Then the rest of the requirements can be installed with
 $ pip install -r requirements.txt
 ```
 
-### Mesh Decimation
-For the mesh decimation code we use a function from the [COMA repository](https://github.com/anuragranj/coma) (the files **mesh_sampling.py** and **shape_data.py** - previously **facemesh.py** - were taken from the COMA repo and adapted to our needs). In order to decimate your template mesh, you will need the [MPI-Mesh](https://github.com/MPI-IS/mesh) package (a mesh library similar to Trimesh or Open3D). 
-
 
 # Data Organization
 
 Here is the pre-processed datasets on Google Drive: [DFAUST-dataset](https://drive.google.com/file/d/14UZq9JkDqjLLBiqHkSoIBZpkW6PQ_Xbi/view?usp=sharing) and [COMA-dataset](https://drive.google.com/file/d/1LNhYee-h5_m1RVzguZvT2oPUsJAK28ac/view?usp=sharing). 
 
-#### Preprocessing for your custom dataset:
+### Preprocessing for your custom dataset:
 
 In order to use a pytorch dataloader for training and testing, we split the data into seperate files by:
 
