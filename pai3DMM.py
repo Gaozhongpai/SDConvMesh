@@ -29,8 +29,8 @@ from utils import IOStream
 from sklearn.metrics.pairwise import euclidean_distances
 meshpackage = 'trimesh' # 'mpi-mesh', trimesh'
 
-root_dir = 'dataset/DFAUST-dataset'  # COMA-dataset'  # DFAUST-dataset' # monoData
-generative_model = 'PaiConvTinyOne-dfaust-8'
+root_dir = '/media/pai/Disk/data/COMA-dataset'  # COMA-dataset'  # DFAUST-dataset' # monoData
+generative_model = 'HSDConvFinal'
 
 dataset = 'd3dfacs_alignments'
 name = 'sliced'
@@ -76,7 +76,7 @@ args = {'generative_model': generative_model,
         'seed':2, 'loss':'l1',
         'batch_size':32, 'num_epochs':300, 'eval_frequency':200, 'num_workers': 4,
         'filter_sizes_enc': filter_sizes_enc, 'filter_sizes_dec': filter_sizes_dec,
-        'nz':16,
+        'nz':32,
         'ds_factors': ds_factors, 'step_sizes' : step_sizes,
         
         'lr':1e-3, 'regularization': 5e-5,
@@ -200,40 +200,41 @@ io.cprint(str(args))
 #%%
 # Building model, optimizer, and loss function
 
-dataset_train = autoencoder_dataset(
-    root_dir=args['data'],
-    points_dataset='train',
-    shapedata=shapedata,
-    normalization=args['normalization'])
+if args['mode'] == 'train': 
+    dataset_train = autoencoder_dataset(
+        root_dir=args['data'],
+        points_dataset='train',
+        shapedata=shapedata,
+        normalization=args['normalization'])
 
-dataloader_train = DataLoader(
-    dataset_train, batch_size=args['batch_size'],
-    shuffle=args['shuffle'],
-    num_workers = args['num_workers']
-    )
+    dataloader_train = DataLoader(
+        dataset_train, batch_size=args['batch_size'],
+        shuffle=args['shuffle'],
+        num_workers = args['num_workers']
+        )
 
-dataset_val = autoencoder_dataset(
-    root_dir=args['data'],
-    points_dataset='val',
-    shapedata=shapedata,
-    normalization=args['normalization'])
+    dataset_val = autoencoder_dataset(
+        root_dir=args['data'],
+        points_dataset='val',
+        shapedata=shapedata,
+        normalization=args['normalization'])
 
-dataloader_val = DataLoader(
-    dataset_val, batch_size=args['batch_size'],
-    shuffle=False,
-    num_workers = args['num_workers'])
+    dataloader_val = DataLoader(
+        dataset_val, batch_size=args['batch_size'],
+        shuffle=False,
+        num_workers = args['num_workers'])
+else:
+    dataset_test = autoencoder_dataset(
+        root_dir=args['data'],
+        points_dataset='test',
+        shapedata=shapedata,
+        normalization=args['normalization'])
 
-dataset_test = autoencoder_dataset(
-    root_dir=args['data'],
-    points_dataset='test',
-    shapedata=shapedata,
-    normalization=args['normalization'])
-
-dataloader_test = DataLoader(
-    dataset_test, batch_size=args['batch_size'],
-    shuffle=False,
-    #num_workers = args['num_workers']
-    )
+    dataloader_test = DataLoader(
+        dataset_test, batch_size=args['batch_size'],
+        shuffle=False,
+        #num_workers = args['num_workers']
+        )
 
 model = PaiAutoencoder(filters_enc = args['filter_sizes_enc'],
                             filters_dec = args['filter_sizes_dec'],
