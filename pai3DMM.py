@@ -29,8 +29,8 @@ from utils import IOStream
 from sklearn.metrics.pairwise import euclidean_distances
 meshpackage = 'trimesh' # 'mpi-mesh', trimesh'
 
-root_dir = '/media/pai/Disk/data/COMA-dataset'  # COMA-dataset'  # DFAUST-dataset' # monoData
-generative_model = 'HSDConvFinal'
+root_dir = 'dataset/COMA-dataset'  # COMA-dataset'  # DFAUST-dataset' # monoData
+generative_model = 'HSDConvFinal-x'
 
 dataset = 'd3dfacs_alignments'
 name = 'sliced'
@@ -48,7 +48,7 @@ downsample_method = 'COMA_downsample' # choose'COMA_downsample' or 'meshlab_down
 # below are the arguments for the DFAUST run
 reference_mesh_file = os.path.join(root_dir, 'template.obj')
 downsample_directory = os.path.join(root_dir, downsample_method)
-ds_factors = [4, 4, 4]
+ds_factors = [4, 4, 4, 4]
 kernal_size = [9, 9, 9, 9, 9]
 step_sizes = [2, 2, 1, 1, 1]
 
@@ -74,7 +74,7 @@ args = {'generative_model': generative_model,
         'reference_mesh_file':reference_mesh_file, 'downsample_directory': downsample_directory,
         'checkpoint_file': 'checkpoint',
         'seed':2, 'loss':'l1',
-        'batch_size':32, 'num_epochs':300, 'eval_frequency':200, 'num_workers': 4,
+        'batch_size':32, 'num_epochs':300, 'eval_frequency':200, 'num_workers': 8,
         'filter_sizes_enc': filter_sizes_enc, 'filter_sizes_dec': filter_sizes_dec,
         'nz':32,
         'ds_factors': ds_factors, 'step_sizes' : step_sizes,
