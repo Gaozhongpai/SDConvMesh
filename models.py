@@ -136,8 +136,11 @@ class PaiAutoencoder(nn.Module):
         self.B_2 = nn.Parameter(torch.randn(3, mappingsize//2) , requires_grad=False)  
         
         self.t_vertices = [torch.cat([(x[self.x_neighbors[i]][:, 1:] - x[:, None]).view(x.shape[0], -1), x], dim=1) for i, x in enumerate(t_vertices)]
+        self.t_vertices = [((x - x.min(dim=0, keepdim=True)[0]) / (x.max(dim=0, keepdim=True)[0] \
+                             - x.min(dim=0, keepdim=True)[0]) - 0.5)*5 for x in self.t_vertices]
         self.t_vertices = [torch.cat([2.*math.pi*x[:, :24] @ (self.B_1.data).to(x),
-                                        2.*math.pi*x[:, 24:] @ (self.B_2.data).to(x)], dim=1) for x in self.t_vertices]
+                                      2.*math.pi*x[:, 24:] @ (self.B_2.data).to(x)], dim=1) for x in self.t_vertices]
+        
         # self.t_vertices = [torch.cat([x[self.x_neighbors[i]][:, 1:].mean(dim=1) - x, x], dim=-1) for i, x in enumerate(t_vertices)]
         # self.t_vertices = [((x - x.min(dim=0, keepdim=True)[0]) / (x.max(dim=0, keepdim=True)[0] \
         #                      - x.min(dim=0, keepdim=True)[0]) - 0.5)*100 for x in self.t_vertices]
@@ -259,12 +262,14 @@ class PaiAutoencoder(nn.Module):
             self.o_vertices[i+1] = self.attpoolenc[i](self.o_vertices[i][None]).squeeze()
             
         self.t_vertices = [torch.cat([(x[self.x_neighbors[i]][:, 1:] - x[:, None]).view(x.shape[0], -1), x], dim=1) for i, x in enumerate(self.o_vertices)]
+        self.t_vertices = [((x - x.min(dim=0, keepdim=True)[0]) / (x.max(dim=0, keepdim=True)[0] \
+                             - x.min(dim=0, keepdim=True)[0]) - 0.5)*5 for x in self.t_vertices]
         self.t_vertices = [torch.cat([2.*math.pi*x[:, :24] @ (self.B_1.data).to(x),
-                                        2.*math.pi*x[:, 24:] @ (self.B_2.data).to(x)], dim=1) for x in self.t_vertices]
+                                      2.*math.pi*x[:, 24:] @ (self.B_2.data).to(x)], dim=1) for x in self.t_vertices]
+        
         # self.t_vertices = [torch.cat([x[self.x_neighbors[i]][:, 1:].mean(dim=1) - x, x], dim=-1) for i, x in enumerate(self.o_vertices)]
         # self.t_vertices = [2.*math.pi*x @ (self.B.data).to(x) for x in self.o_vertices]
-        # self.t_vertices = [((x - x.min(dim=0, keepdim=True)[0]) / (x.max(dim=0, keepdim=True)[0] \
-        #                      - x.min(dim=0, keepdim=True)[0]) - 0.5)*100 for x in self.t_vertices]
+
         self.t_vertices = [torch.cat([torch.sin(x), torch.cos(x)], dim=-1) for x in self.t_vertices]
         return
 
