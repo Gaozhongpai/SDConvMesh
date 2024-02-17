@@ -32,7 +32,18 @@ For the mesh decimation code we use a function from the [COMA repository](https:
 
 # Data Organization
 
+Here is the pre-processed datasets on Google Drive: [DFAUST-dataset](https://drive.google.com/file/d/14UZq9JkDqjLLBiqHkSoIBZpkW6PQ_Xbi/view?usp=sharing) and [COMA-dataset](https://drive.google.com/file/d/1LNhYee-h5_m1RVzguZvT2oPUsJAK28ac/view?usp=sharing). 
+
+#### Preprocessing for your custom dataset:
+
+In order to use a pytorch dataloader for training and testing, we split the data into seperate files by:
+
+```
+$ python data_generation.py --root_dir=/path/to/data_root_dir --dataset=DFAUST --num_valid=100
+```
+
 The following is the organization of the dataset directories expected by the code:
+
 
 * data **root_dir**/
   * **dataset** name/ (eg DFAUST)
@@ -51,15 +62,7 @@ The following is the organization of the dataset directories expected by the cod
         * paths_val.npy (created by data_generation.py)
         * paths_test.npy (created by data_generation.py)
 
-# Usage
 
-#### Data preprocessing 
-
-In order to use a pytorch dataloader for training and testing, we split the data into seperate files by:
-
-```
-$ python data_generation.py --root_dir=/path/to/data_root_dir --dataset=DFAUST --num_valid=100
-```
 
 #### Training and Testing
 
