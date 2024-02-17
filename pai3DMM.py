@@ -28,7 +28,7 @@ from utils import IOStream
 
 from sklearn.metrics.pairwise import euclidean_distances
 meshpackage = 'trimesh' # 'mpi-mesh', trimesh'
-root_dir = '/media/pai/Disk/data/monoData'  # Neural3DMMdata'  # dfaustData' # monoData
+root_dir = '/media/pai/Disk/data/Neural3DMMdata'  # Neural3DMMdata'  # dfaustData' # monoData
 
 
 dataset = 'd3dfacs_alignments'
@@ -42,7 +42,7 @@ torch.cuda.get_device_name(device_idx)
 #%%
 args = {}
 
-generative_model = 'tiny-pooling-32-all-same'
+generative_model = 'PaiConvTinyOne'
 downsample_method = 'COMA_downsample' # choose'COMA_downsample' or 'meshlab_downsample'
 
 
@@ -50,16 +50,19 @@ downsample_method = 'COMA_downsample' # choose'COMA_downsample' or 'meshlab_down
 reference_mesh_file = os.path.join(root_dir, 'template.obj')
 downsample_directory = os.path.join(root_dir, downsample_method)
 ds_factors = [4, 4, 4]
-kernal_size = [9, 9, 9, 9] # , 9]
-step_sizes = [2, 2, 1, 1] #, 1]
+kernal_size = [9, 9, 9, 9, 9]
+step_sizes = [2, 2, 1, 1, 1]
 
 ## # monoData
-filter_sizes_enc = [3, 16, 32, 64]
-filter_sizes_dec = [64, 32, 32, 16, 3]
+# filter_sizes_enc = [3, 16, 32, 64]
+# filter_sizes_dec = [64, 32, 32, 16, 3]
 
 # ## # Neural3DMMdata
-# filter_sizes_enc = [3, 32, 45, 64, 128]
-# filter_sizes_dec = [128, 80, 48, 32, 32, 3]
+filter_sizes_enc = [3, 32, 45, 64, 128]
+filter_sizes_dec = [128, 80, 48, 32, 32, 3]
+
+filter_sizes_enc = [3, 16, 32, 64, 128]
+filter_sizes_dec = [128, 64, 32, 32, 16, 3]
 
 # # ## dfaustData
 # filter_sizes_enc = [3, 32, 42, 80, 128]
@@ -81,7 +84,7 @@ args = {'generative_model': generative_model,
         'scheduler': True, 'decay_rate': 0.99,'decay_steps':1,
         'resume': False,
 
-        'mode':'test', 'shuffle': True, 'nVal': 100, 'normalization': True}
+        'mode':'train', 'shuffle': True, 'nVal': 100, 'normalization': True}
 
 args['results_folder'] = os.path.join(args['results_folder'],'latent_'+str(args['nz']))
 
@@ -233,16 +236,15 @@ dataloader_test = DataLoader(
     #num_workers = args['num_workers']
     )
 
-if 'tiny-pooling-32-all-same' in args['generative_model']:
-    model = PaiAutoencoder(filters_enc = args['filter_sizes_enc'],
-                              filters_dec = args['filter_sizes_dec'],
-                              latent_size=args['nz'],
-                              sizes=sizes,
-                              t_vertices=vertices,
-                              num_neighbors=kernal_size,
-                              x_neighbors=Adj,
-                              D=tD, U=tU).to(device)
-    model = torch.nn.DataParallel(model)
+model = PaiAutoencoder(filters_enc = args['filter_sizes_enc'],
+                            filters_dec = args['filter_sizes_dec'],
+                            latent_size=args['nz'],
+                            sizes=sizes,
+                            t_vertices=vertices,
+                            num_neighbors=kernal_size,
+                            x_neighbors=Adj,
+                            D=tD, U=tU).to(device)
+model = torch.nn.DataParallel(model)
 
 trainables_wo_index = [param for name, param in model.named_parameters()
                 if param.requires_grad and 'adjweight' not in name and 'key' not in name and 'weight_prior' not in name]
@@ -293,19 +295,18 @@ if args['mode'] == 'train':
     else:
         start_epoch = 0
 
-    if args['generative_model'] == 'tiny-pooling-32-all-same':
-        train_autoencoder_dataloader(dataloader_train, dataloader_val,
-                          device, model, optim, loss_fn, io,
-                          bsize = args['batch_size'],
-                          start_epoch = start_epoch,
-                          n_epochs = args['num_epochs'],
-                          eval_freq = args['eval_frequency'],
-                          scheduler = scheduler,
-                          writer = writer,
-                          save_recons=True,
-                          shapedata=shapedata,
-                          metadata_dir=checkpoint_path, samples_dir=samples_path,
-                          checkpoint_path = args['checkpoint_file'])
+    train_autoencoder_dataloader(dataloader_train, dataloader_val,
+                        device, model, optim, loss_fn, io,
+                        bsize = args['batch_size'],
+                        start_epoch = start_epoch,
+                        n_epochs = args['num_epochs'],
+                        eval_freq = args['eval_frequency'],
+                        scheduler = scheduler,
+                        writer = writer,
+                        save_recons=True,
+                        shapedata=shapedata,
+                        metadata_dir=checkpoint_path, samples_dir=samples_path,
+                        checkpoint_path = args['checkpoint_file'])
 
 
 #%%
