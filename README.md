@@ -46,7 +46,7 @@ The following is the organization of the dataset directories expected by the cod
 
 
 * data **root_dir**/
-  * **dataset** name/ (eg DFAUST)
+  * **dataset** name/ (eg DFAUST-dataset)
     * template
       * template.obj
       * downsample_method/
