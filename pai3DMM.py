@@ -28,8 +28,9 @@ from utils import IOStream
 
 from sklearn.metrics.pairwise import euclidean_distances
 meshpackage = 'trimesh' # 'mpi-mesh', trimesh'
-root_dir = '/media/pai/Disk/data/Neural3DMMdata'  # Neural3DMMdata'  # dfaustData' # monoData
 
+root_dir = 'dataset/DFAUST-dataset'  # COMA-dataset'  # DFAUST-dataset' # monoData
+generative_model = 'PaiConvTinyOne-dfaust-8'
 
 dataset = 'd3dfacs_alignments'
 name = 'sliced'
@@ -42,10 +43,8 @@ torch.cuda.get_device_name(device_idx)
 #%%
 args = {}
 
-generative_model = 'PaiConvTinyOne'
+
 downsample_method = 'COMA_downsample' # choose'COMA_downsample' or 'meshlab_downsample'
-
-
 # below are the arguments for the DFAUST run
 reference_mesh_file = os.path.join(root_dir, 'template.obj')
 downsample_directory = os.path.join(root_dir, downsample_method)
@@ -58,15 +57,15 @@ step_sizes = [2, 2, 1, 1, 1]
 # filter_sizes_dec = [64, 32, 32, 16, 3]
 
 # ## # Neural3DMMdata
-filter_sizes_enc = [3, 32, 45, 64, 128]
-filter_sizes_dec = [128, 80, 48, 32, 32, 3]
-
-filter_sizes_enc = [3, 16, 32, 64, 128]
-filter_sizes_dec = [128, 64, 32, 32, 16, 3]
+# filter_sizes_enc = [3, 32, 45, 64, 128]
+# filter_sizes_dec = [128, 80, 48, 32, 32, 3]
 
 # # ## dfaustData
 # filter_sizes_enc = [3, 32, 42, 80, 128]
 # filter_sizes_dec = [128, 80, 64, 40, 32, 3]
+
+filter_sizes_enc = [3, 16, 32, 64, 128]
+filter_sizes_dec = [128, 64, 32, 32, 16, 3]
 
 
 args = {'generative_model': generative_model,
@@ -77,7 +76,7 @@ args = {'generative_model': generative_model,
         'seed':2, 'loss':'l1',
         'batch_size':32, 'num_epochs':300, 'eval_frequency':200, 'num_workers': 4,
         'filter_sizes_enc': filter_sizes_enc, 'filter_sizes_dec': filter_sizes_dec,
-        'nz':32,
+        'nz':16,
         'ds_factors': ds_factors, 'step_sizes' : step_sizes,
         
         'lr':1e-3, 'regularization': 5e-5,
@@ -244,7 +243,7 @@ model = PaiAutoencoder(filters_enc = args['filter_sizes_enc'],
                             num_neighbors=kernal_size,
                             x_neighbors=Adj,
                             D=tD, U=tU).to(device)
-model = torch.nn.DataParallel(model)
+# model = torch.nn.DataParallel(model)
 
 trainables_wo_index = [param for name, param in model.named_parameters()
                 if param.requires_grad and 'adjweight' not in name and 'key' not in name and 'weight_prior' not in name]
