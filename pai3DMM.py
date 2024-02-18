@@ -30,11 +30,11 @@ from sklearn.metrics.pairwise import euclidean_distances
 meshpackage = 'trimesh' # 'mpi-mesh', trimesh'
 
 root_dir = 'dataset/COMA-dataset'  # COMA-dataset'  # DFAUST-dataset' # monoData
-generative_model = 'SDConvFinal-x'
+is_hierarchical = True
+is_same_param = False
+generative_model = 'HSDConvFinal-x' if is_hierarchical else 'SDConvFinal-x'
 
-dataset = 'd3dfacs_alignments'
 name = 'sliced'
-
 GPU = True
 device_idx = 0
 torch.cuda.get_device_name(device_idx)
@@ -56,17 +56,16 @@ step_sizes = [2, 2, 1, 1, 1]
 # filter_sizes_enc = [3, 16, 32, 64]
 # filter_sizes_dec = [64, 32, 32, 16, 3]
 
-# ## # Neural3DMMdata
-# filter_sizes_enc = [3, 32, 45, 64, 128]
-# filter_sizes_dec = [128, 80, 48, 32, 32, 3]
-
-# # ## dfaustData
-# filter_sizes_enc = [3, 32, 42, 80, 128]
-# filter_sizes_dec = [128, 80, 64, 40, 32, 3]
-
 filter_sizes_enc = [3, 16, 32, 64, 128]
 filter_sizes_dec = [128, 64, 32, 32, 16, 3]
 
+if is_same_param: 
+    if "COMA" in root_dir: ## COMA
+        filter_sizes_enc = [3, 32, 45, 64, 128]
+        filter_sizes_dec = [128, 80, 48, 32, 32, 3]
+    elif "DFAUST" in root_dir: ## dfaustData
+        filter_sizes_enc = [3, 32, 42, 80, 128]
+        filter_sizes_dec = [128, 80, 64, 40, 32, 3]
 
 args = {'generative_model': generative_model,
         'name': name, 'data': os.path.join(root_dir, 'Processed',name),
@@ -243,7 +242,8 @@ model = PaiAutoencoder(filters_enc = args['filter_sizes_enc'],
                             t_vertices=vertices,
                             num_neighbors=kernal_size,
                             x_neighbors=Adj,
-                            D=tD, U=tU).to(device)
+                            D=tD, U=tU, 
+                            is_hierarchical=is_hierarchical).to(device)
 # model = torch.nn.DataParallel(model)
 
 trainables_wo_index = [param for name, param in model.named_parameters()

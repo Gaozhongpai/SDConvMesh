@@ -116,7 +116,7 @@ class PaiConvTiny(nn.Module):
 
 class PaiAutoencoder(nn.Module):
     def __init__(self, filters_enc, filters_dec, latent_size, 
-                 t_vertices, sizes, num_neighbors, x_neighbors, D, U, activation = 'elu'):
+                 t_vertices, sizes, num_neighbors, x_neighbors, D, U, activation = 'elu', is_hierarchical=True):
         super(PaiAutoencoder, self).__init__()
         self.latent_size = latent_size
         self.sizes = sizes
@@ -129,7 +129,7 @@ class PaiAutoencoder(nn.Module):
         self.D = nn.ParameterList(self.D)
         self.U = [nn.Parameter(x, False) for x in U]
         self.U = nn.ParameterList(self.U)
-        self.is_hierarchical = False
+        self.is_hierarchical = is_hierarchical
 
         mappingsize = 64
         self.o_vertices = t_vertices
