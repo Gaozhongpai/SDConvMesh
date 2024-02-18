@@ -129,6 +129,7 @@ class PaiAutoencoder(nn.Module):
         self.D = nn.ParameterList(self.D)
         self.U = [nn.Parameter(x, False) for x in U]
         self.U = nn.ParameterList(self.U)
+        self.is_hierarchical = False
 
         mappingsize = 64
         self.o_vertices = t_vertices
@@ -226,8 +227,7 @@ class PaiAutoencoder(nn.Module):
         for i in range(len(self.num_neighbors)-1):
             x = self.conv[i](x, t_vertices[i], S[i].repeat(bsize,1,1))
             # x = torch.matmul(D[i],x)
-            # x = self.poolwT(x, D[i])
-            x = self.attpoolenc[i](x) #, t_vertices[i]) #, t_vertices[i+1])
+            x = self.attpoolenc[i](x) if self.is_hierarchical else self.poolwT(x, D[i])  #, t_vertices[i]) #, t_vertices[i+1])
             # self.t_vertices[i+1] = self.attpoolenc[i](self.t_vertices[i][None]).squeeze().detach() #, t_vertices[i])#, t_vertices[i+1])
         # x = self.conv[-1](x, t_vertices[-1], S[-1].repeat(bsize,1,1))
         # x[5] = x[2]
@@ -249,9 +249,8 @@ class PaiAutoencoder(nn.Module):
         x = x.view(bsize,self.sizes[-1]+1,-1)
 
         for i in range(len(self.num_neighbors)-1):
-            #x = torch.matmul(U[-1-i],x)
-            # x = self.poolwT(x, U[-1-i])
-            x = self.attpooldec[-i-1](x) #, t_vertices[-i-1]) #, t_vertices[-i-2])
+            # x = torch.matmul(U[-1-i],x)
+            x = self.attpooldec[-i-1](x) if self.is_hierarchical else self.poolwT(x, U[-1-i]) #, t_vertices[-i-1]) #, t_vertices[-i-2])
             x = self.dconv[i](x, t_vertices[-2-i], S[-2-i].repeat(bsize,1,1))
         x = self.dconv[-1](x, t_vertices[0], S[0].repeat(bsize,1,1))
         return x
@@ -276,7 +275,8 @@ class PaiAutoencoder(nn.Module):
     def forward(self,x):
         bsize = x.size(0)
         # alpha = torch.linspace(0, 1, steps=5).cuda().unsqueeze(1)
-        self.update()
+        if self.is_hierarchical:
+            self.update()
         z = self.encode(x)
         # z[0] = z[18] - z[7] + z[8]
         # z[0], z[1] = z[18], z[29] ## z[23], z[26]

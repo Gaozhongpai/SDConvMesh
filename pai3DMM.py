@@ -30,7 +30,7 @@ from sklearn.metrics.pairwise import euclidean_distances
 meshpackage = 'trimesh' # 'mpi-mesh', trimesh'
 
 root_dir = 'dataset/COMA-dataset'  # COMA-dataset'  # DFAUST-dataset' # monoData
-generative_model = 'HSDConvFinal-x'
+generative_model = 'SDConvFinal-x'
 
 dataset = 'd3dfacs_alignments'
 name = 'sliced'
@@ -271,7 +271,7 @@ print(model)
 params = sum(param.numel() for name, param in model.named_parameters() \
             if param.requires_grad and 't_vertices' not in name and 'attpool' not in name)
 print("Total number of parameters is: {}".format(params))
-
+io.cprint("Total number of parameters is: {}".format(params))
 #%%
 if args['mode'] == 'train':
     writer = SummaryWriter(summary_path)
