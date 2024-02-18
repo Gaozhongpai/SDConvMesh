@@ -32,8 +32,12 @@ meshpackage = 'trimesh' # 'mpi-mesh', trimesh'
 root_dir = 'dataset/COMA-dataset'  # COMA-dataset'  # DFAUST-dataset' # monoData
 is_hierarchical = True
 is_same_param = False
-generative_model = 'HSDConvFinal-x' if is_hierarchical else 'SDConvFinal-x'
 
+generative_model = 'SDConvFinal-x' # method name
+if is_hierarchical:
+    generative_model = 'H' + generative_model
+if is_same_param:
+    generative_model = generative_model + '-param'
 name = 'sliced'
 GPU = True
 device_idx = 0
