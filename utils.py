@@ -1,7 +1,7 @@
 import numpy as np
 from random import choice
 from random import shuffle
-from pykeops.torch import generic_argkmin
+# from pykeops.torch import generic_argkmin
 import torch.nn as nn
 import torch
 import math
