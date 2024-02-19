@@ -255,9 +255,9 @@ model = PaiAutoencoder(filters_enc = args['filter_sizes_enc'],
 # model = torch.nn.DataParallel(model)
 
 trainables_wo_index = [param for name, param in model.named_parameters()
-                if param.requires_grad and 'adjweight' not in name and 'key' not in name and 'weight_prior' not in name]
+                if param.requires_grad and 'adjweight' not in name] # and 'key' not in name and 'weight_prior' not in name
 trainables_wt_index = [param for name, param in model.named_parameters()
-                if param.requires_grad and 'adjweight' in name or 'key' in name or 'weight_prior' in name]
+                if param.requires_grad and 'adjweight' in name] # or 'key' in name or 'weight_prior' in name
 optim = torch.optim.Adam([{'params': trainables_wo_index, 'weight_decay': args['regularization']},
                           {'params': trainables_wt_index}],
                           lr=args['lr'])
