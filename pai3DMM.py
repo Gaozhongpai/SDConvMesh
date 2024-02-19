@@ -32,8 +32,11 @@ meshpackage = 'trimesh' # 'mpi-mesh', trimesh'
 root_dir = 'dataset/DFAUST-dataset'  # COMA-dataset'  # DFAUST-dataset' # monoData
 is_hierarchical = True
 is_same_param = False
+is_new_filter = True
 
-generative_model = 'SDConvFinal-x' # method name
+generative_model = 'SDConvFinal' # method name
+if not is_new_filter:
+    generative_model = generative_model + '-x'
 if is_hierarchical:
     generative_model = 'H' + generative_model
 if is_same_param:
@@ -247,7 +250,8 @@ model = PaiAutoencoder(filters_enc = args['filter_sizes_enc'],
                             num_neighbors=kernal_size,
                             x_neighbors=Adj,
                             D=tD, U=tU, 
-                            is_hierarchical=is_hierarchical).to(device)
+                            is_hierarchical=is_hierarchical,
+                            is_new_filter=is_new_filter).to(device)
 # model = torch.nn.DataParallel(model)
 
 trainables_wo_index = [param for name, param in model.named_parameters()

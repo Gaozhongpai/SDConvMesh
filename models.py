@@ -116,7 +116,8 @@ class PaiConvTiny(nn.Module):
 
 class PaiAutoencoder(nn.Module):
     def __init__(self, filters_enc, filters_dec, latent_size, 
-                 t_vertices, sizes, num_neighbors, x_neighbors, D, U, activation = 'elu', is_hierarchical=True):
+                 t_vertices, sizes, num_neighbors, x_neighbors, D, U, activation = 'elu', 
+                 is_hierarchical=True, is_new_filter=True):
         super(PaiAutoencoder, self).__init__()
         self.latent_size = latent_size
         self.sizes = sizes
@@ -130,23 +131,29 @@ class PaiAutoencoder(nn.Module):
         self.U = [nn.Parameter(x, False) for x in U]
         self.U = nn.ParameterList(self.U)
         self.is_hierarchical = is_hierarchical
+        self.is_new_filter = is_new_filter
 
         mappingsize = 64
         self.o_vertices = t_vertices
-        self.B_1 = nn.Parameter(torch.randn(24, mappingsize//2) , requires_grad=False)
-        self.B_2 = nn.Parameter(torch.randn(3, mappingsize//2) , requires_grad=False)  
+        if not self.is_new_filter:
+        ## v1
+            self.B_1 = nn.Parameter(torch.randn(24, mappingsize//2) , requires_grad=False)
+            self.B_2 = nn.Parameter(torch.randn(3, mappingsize//2) , requires_grad=False)  
+            self.t_vertices = [torch.cat([(x[self.x_neighbors[i]][:, 1:] - x[:, None]).view(x.shape[0], -1), x], dim=1) for i, x in enumerate(t_vertices)]
+            self.t_vertices = [((x - x.min(dim=0, keepdim=True)[0]) / (x.max(dim=0, keepdim=True)[0] \
+                                - x.min(dim=0, keepdim=True)[0]) - 0.5)*5 for x in self.t_vertices]
+            self.t_vertices = [torch.cat([2.*math.pi*x[:, :24] @ (self.B_1.data).to(x),
+                                        2.*math.pi*x[:, 24:] @ (self.B_2.data).to(x)], dim=1) for x in self.t_vertices]
+        else:
+        ## v2
+            self.B = nn.Parameter(torch.randn(6, mappingsize) , requires_grad=False)
+            self.t_vertices = [torch.cat([x[self.x_neighbors[i]][:, 1:].mean(dim=1) - x, x], dim=-1) for i, x in enumerate(t_vertices)]
+            self.t_vertices = [2.*math.pi*x @ (self.B.data).to(x) for x in self.t_vertices]
+            self.t_vertices = [((x - x.min(dim=0, keepdim=True)[0]) / (x.max(dim=0, keepdim=True)[0] \
+                                - x.min(dim=0, keepdim=True)[0]) - 0.5)*100 for x in self.t_vertices]
         
-        self.t_vertices = [torch.cat([(x[self.x_neighbors[i]][:, 1:] - x[:, None]).view(x.shape[0], -1), x], dim=1) for i, x in enumerate(t_vertices)]
-        self.t_vertices = [((x - x.min(dim=0, keepdim=True)[0]) / (x.max(dim=0, keepdim=True)[0] \
-                             - x.min(dim=0, keepdim=True)[0]) - 0.5)*5 for x in self.t_vertices]
-        self.t_vertices = [torch.cat([2.*math.pi*x[:, :24] @ (self.B_1.data).to(x),
-                                      2.*math.pi*x[:, 24:] @ (self.B_2.data).to(x)], dim=1) for x in self.t_vertices]
+        self.t_vertices = [torch.cat([torch.sin(2*x), torch.cos(x)], dim=-1) for x in self.t_vertices]
         
-        # self.t_vertices = [torch.cat([x[self.x_neighbors[i]][:, 1:].mean(dim=1) - x, x], dim=-1) for i, x in enumerate(t_vertices)]
-        # self.t_vertices = [((x - x.min(dim=0, keepdim=True)[0]) / (x.max(dim=0, keepdim=True)[0] \
-        #                      - x.min(dim=0, keepdim=True)[0]) - 0.5)*100 for x in self.t_vertices]
-        self.t_vertices = [torch.cat([torch.sin(x), torch.cos(x)], dim=-1) for x in self.t_vertices]
-    
         self.eps = 1e-7
         #self.reset_parameters()
         #self.device = device
@@ -259,16 +266,20 @@ class PaiAutoencoder(nn.Module):
 
         for i in range(len(self.num_neighbors)-1):
             self.o_vertices[i+1] = self.attpoolenc[i](self.o_vertices[i][None]).squeeze() #, self.t_vertices[i].detach(), self.t_vertices[i+1].detach()).squeeze() # , self.t_vertices[i].detach()).squeeze()
-            
-        self.t_vertices = [torch.cat([(x[self.x_neighbors[i]][:, 1:] - x[:, None]).view(x.shape[0], -1), x], dim=1) for i, x in enumerate(self.o_vertices)]
-        self.t_vertices = [((x - x.min(dim=0, keepdim=True)[0]) / (x.max(dim=0, keepdim=True)[0] \
-                             - x.min(dim=0, keepdim=True)[0]) - 0.5)*5 for x in self.t_vertices]
-        self.t_vertices = [torch.cat([2.*math.pi*x[:, :24] @ (self.B_1.data).to(x),
-                                      2.*math.pi*x[:, 24:] @ (self.B_2.data).to(x)], dim=1) for x in self.t_vertices]
         
-        # self.t_vertices = [torch.cat([x[self.x_neighbors[i]][:, 1:].mean(dim=1) - x, x], dim=-1) for i, x in enumerate(self.o_vertices)]
-        # self.t_vertices = [2.*math.pi*x @ (self.B.data).to(x) for x in self.o_vertices]
-
+        if not self.is_new_filter:
+        ## v1
+            self.t_vertices = [torch.cat([(x[self.x_neighbors[i]][:, 1:] - x[:, None]).view(x.shape[0], -1), x], dim=1) for i, x in enumerate(self.o_vertices)]
+            self.t_vertices = [((x - x.min(dim=0, keepdim=True)[0]) / (x.max(dim=0, keepdim=True)[0] \
+                                 - x.min(dim=0, keepdim=True)[0]) - 0.5)*5 for x in self.t_vertices]
+            self.t_vertices = [torch.cat([2.*math.pi*x[:, :24] @ (self.B_1.data).to(x),
+                                          2.*math.pi*x[:, 24:] @ (self.B_2.data).to(x)], dim=1) for x in self.t_vertices]
+        else:
+        ## v2
+            self.t_vertices = [torch.cat([x[self.x_neighbors[i]][:, 1:].mean(dim=1) - x, x], dim=-1) for i, x in enumerate(self.o_vertices)]
+            self.t_vertices = [2.*math.pi*x @ (self.B.data).to(x) for x in self.t_vertices]
+            self.t_vertices = [((x - x.min(dim=0, keepdim=True)[0]) / (x.max(dim=0, keepdim=True)[0] \
+                                - x.min(dim=0, keepdim=True)[0]) - 0.5)*100 for x in self.t_vertices]
         self.t_vertices = [torch.cat([torch.sin(x), torch.cos(x)], dim=-1) for x in self.t_vertices]
         return
 
