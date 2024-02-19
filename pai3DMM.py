@@ -29,7 +29,7 @@ from utils import IOStream
 from sklearn.metrics.pairwise import euclidean_distances
 meshpackage = 'trimesh' # 'mpi-mesh', trimesh'
 
-root_dir = 'dataset/COMA-dataset'  # COMA-dataset'  # DFAUST-dataset' # monoData
+root_dir = 'dataset/DFAUST-dataset'  # COMA-dataset'  # DFAUST-dataset' # monoData
 is_hierarchical = True
 is_same_param = False
 
@@ -331,6 +331,5 @@ if args['mode'] == 'test':
     torch.save(predictions, os.path.join(prediction_path,'predictions.tch'))
     torch.save({'norm_l1_loss':norm_l1_loss, 'l2_loss':l2_loss}, os.path.join(prediction_path,'loss.tch'))
 
-    print('autoencoder: normalized loss', norm_l1_loss)
-
-    print('autoencoder: euclidean distance in mm=', l2_loss)
+    io.cprint('autoencoder: normalized loss={}'.format(norm_l1_loss.item()))
+    io.cprint('autoencoder: euclidean distance in mm={}'.format(l2_loss.item()))

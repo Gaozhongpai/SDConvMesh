@@ -7,7 +7,7 @@ from numpy import inf
 from sparsemax import Sparsemax
 import torch.nn.functional as F
 import math
-from attpool import AttPool, PaiAttPool, PaiAttPool2
+from attpool import AttPool, PaiAttPool, PaiAttPool2, PaiAttPool3
 from math import ceil, sqrt
 from device import device
 import numpy as np
@@ -227,7 +227,7 @@ class PaiAutoencoder(nn.Module):
         for i in range(len(self.num_neighbors)-1):
             x = self.conv[i](x, t_vertices[i], S[i].repeat(bsize,1,1))
             # x = torch.matmul(D[i],x)
-            x = self.attpoolenc[i](x) if self.is_hierarchical else self.poolwT(x, D[i])  #, t_vertices[i]) #, t_vertices[i+1])
+            x = self.poolwT(x, D[i]) if not self.is_hierarchical else self.attpoolenc[i](x) #, t_vertices[i], t_vertices[i+1]) #, t_vertices[i+1])
             # self.t_vertices[i+1] = self.attpoolenc[i](self.t_vertices[i][None]).squeeze().detach() #, t_vertices[i])#, t_vertices[i+1])
         # x = self.conv[-1](x, t_vertices[-1], S[-1].repeat(bsize,1,1))
         # x[5] = x[2]
@@ -250,7 +250,7 @@ class PaiAutoencoder(nn.Module):
 
         for i in range(len(self.num_neighbors)-1):
             # x = torch.matmul(U[-1-i],x)
-            x = self.attpooldec[-i-1](x) if self.is_hierarchical else self.poolwT(x, U[-1-i]) #, t_vertices[-i-1]) #, t_vertices[-i-2])
+            x = self.poolwT(x, U[-1-i]) if not self.is_hierarchical else self.attpooldec[-i-1](x) #, t_vertices[-i-1], t_vertices[-i-2]) #, t_vertices[-i-2])
             x = self.dconv[i](x, t_vertices[-2-i], S[-2-i].repeat(bsize,1,1))
         x = self.dconv[-1](x, t_vertices[0], S[0].repeat(bsize,1,1))
         return x
@@ -258,7 +258,7 @@ class PaiAutoencoder(nn.Module):
     def update(self):
 
         for i in range(len(self.num_neighbors)-1):
-            self.o_vertices[i+1] = self.attpoolenc[i](self.o_vertices[i][None]).squeeze()
+            self.o_vertices[i+1] = self.attpoolenc[i](self.o_vertices[i][None]).squeeze() #, self.t_vertices[i].detach(), self.t_vertices[i+1].detach()).squeeze() # , self.t_vertices[i].detach()).squeeze()
             
         self.t_vertices = [torch.cat([(x[self.x_neighbors[i]][:, 1:] - x[:, None]).view(x.shape[0], -1), x], dim=1) for i, x in enumerate(self.o_vertices)]
         self.t_vertices = [((x - x.min(dim=0, keepdim=True)[0]) / (x.max(dim=0, keepdim=True)[0] \
