@@ -52,7 +52,7 @@ class PaiConv(nn.Module):
         return out_feat + x_res
 
 class PaiConvTiny(nn.Module):
-    def __init__(self, num_pts, in_c, num_neighbor, out_c,activation='relu',bias=True): # ,device=None):
+    def __init__(self, num_pts, in_c, num_neighbor, out_c,activation='relu',bias=True,base_size=32): # ,device=None):
         super(PaiConvTiny,self).__init__()
         self.in_c = in_c
         self.out_c = out_c
@@ -61,7 +61,7 @@ class PaiConvTiny(nn.Module):
         # self.fc1 = nn.Linear(in_c, in_c)
         # self.fc2 = nn.Linear(out_c, out_c)
         mappingsize = 64
-        self.num_base = 32
+        self.num_base = base_size
         self.num_neighbor = num_neighbor
         if num_pts > 128:
             num_base = self.num_base
@@ -117,7 +117,7 @@ class PaiConvTiny(nn.Module):
 class PaiAutoencoder(nn.Module):
     def __init__(self, filters_enc, filters_dec, latent_size, 
                  t_vertices, sizes, num_neighbors, x_neighbors, D, U, activation = 'elu', 
-                 is_hierarchical=True, is_old_filter=True):
+                 is_hierarchical=True, is_old_filter=False, base_size=32):
         super(PaiAutoencoder, self).__init__()
         self.latent_size = latent_size
         self.sizes = sizes
@@ -162,7 +162,7 @@ class PaiAutoencoder(nn.Module):
         input_size = filters_enc[0]
         for i in range(len(num_neighbors)-1):
             self.conv.append(PaiConvTiny(self.x_neighbors[i].shape[0], input_size, num_neighbors[i], filters_enc[i+1],
-                                        activation=self.activation))
+                                        activation=self.activation, base_size=base_size))
             input_size = filters_enc[i+1]
 
         self.conv = nn.ModuleList(self.conv)   
@@ -174,13 +174,13 @@ class PaiAutoencoder(nn.Module):
         input_size = filters_dec[0]
         for i in range(len(num_neighbors)-1):
             self.dconv.append(PaiConvTiny(self.x_neighbors[-2-i].shape[0], input_size, num_neighbors[-2-i], filters_dec[i+1],
-                                            activation=self.activation))
+                                            activation=self.activation, base_size=base_size))
             input_size = filters_dec[i+1]  
 
             if i == len(num_neighbors)-2:
                 input_size = filters_dec[-2]
                 self.dconv.append(PaiConvTiny(self.x_neighbors[-2-i].shape[0], input_size, num_neighbors[-2-i], filters_dec[-1],
-                                                activation='identity'))
+                                                activation='identity', base_size=base_size))
                     
         self.dconv = nn.ModuleList(self.dconv)
 
