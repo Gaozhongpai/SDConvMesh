@@ -29,10 +29,10 @@ from utils import IOStream
 from sklearn.metrics.pairwise import euclidean_distances
 meshpackage = 'trimesh' # 'mpi-mesh', trimesh'
 
-root_dir = 'dataset/DFAUST-dataset'  # COMA-dataset'  # DFAUST-dataset' # monoData
+root_dir = 'dataset/COMA-dataset'  # COMA-dataset'  # DFAUST-dataset' # monoData
 is_hierarchical = True
 is_same_param = False
-is_old_filter = True
+is_old_filter = False
 
 generative_model = 'SDConvFinal' # method name
 if not is_old_filter:
@@ -251,7 +251,7 @@ model = PaiAutoencoder(filters_enc = args['filter_sizes_enc'],
                             x_neighbors=Adj,
                             D=tD, U=tU, 
                             is_hierarchical=is_hierarchical,
-                            is_new_filter=is_old_filter).to(device)
+                            is_old_filter=is_old_filter).to(device)
 # model = torch.nn.DataParallel(model)
 
 trainables_wo_index = [param for name, param in model.named_parameters()
