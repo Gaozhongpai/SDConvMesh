@@ -33,6 +33,7 @@ root_dir = 'dataset/COMA-dataset'  # COMA-dataset'  # DFAUST-dataset' # monoData
 is_hierarchical = True
 is_same_param = 0 # 0, 1, 2, ## 1 for increaes channel and 2 for increase base 
 is_old_filter = False
+mode = 'test' # 'test', 'train'
 
 generative_model = 'SDConvFinal' # method name
 if not is_old_filter:
@@ -97,7 +98,7 @@ args = {'generative_model': generative_model,
         'scheduler': True, 'decay_rate': 0.99,'decay_steps':1,
         'resume': False,
 
-        'mode':'train', 'shuffle': True, 'nVal': 100, 'normalization': True}
+        'mode': mode, 'shuffle': True, 'nVal': 100, 'normalization': True}
 
 args['results_folder'] = os.path.join(args['results_folder'],'latent_'+str(args['nz']))
 
