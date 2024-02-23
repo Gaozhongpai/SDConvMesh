@@ -29,11 +29,11 @@ from utils import IOStream
 from sklearn.metrics.pairwise import euclidean_distances
 meshpackage = 'trimesh' # 'mpi-mesh', trimesh'
 
-root_dir = 'dataset/COMA-dataset'  # COMA-dataset'  # DFAUST-dataset' # monoData
-is_hierarchical = True
-is_same_param = 0 # 0, 1, 2, ## 1 for increaes channel and 2 for increase base 
-is_old_filter = False
-mode = 'test' # 'test', 'train'
+root_dir = 'dataset/COMA-dataset'   ## 'COMA-dataset' or 'DFAUST-dataset' or 'MANO-dataset''
+is_hierarchical = True              ## 'True' or 'False' for learnable up/down sampling
+is_same_param = 0                   ## '0', '1', '2' where '1' for increaes channel and '2' for increase base 
+is_old_filter = False               ## 'False' or 'True' to use different spectral filter
+mode = 'test'                       ## 'test' or 'train' to train or test the models
 
 generative_model = 'SDConvFinal' # method name
 if not is_old_filter:

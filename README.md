@@ -29,7 +29,9 @@ $ pip install -r requirements.txt
 
 # Data Organization
 
-Here is the pre-processed datasets on Google Drive: [DFAUST-dataset](https://drive.google.com/file/d/14UZq9JkDqjLLBiqHkSoIBZpkW6PQ_Xbi/view?usp=sharing) and [COMA-dataset](https://drive.google.com/file/d/1LNhYee-h5_m1RVzguZvT2oPUsJAK28ac/view?usp=sharing). 
+Here are the pre-processed datasets on Google Drive: [DFAUST-dataset.zip](https://drive.google.com/file/d/14UZq9JkDqjLLBiqHkSoIBZpkW6PQ_Xbi/view?usp=sharing) and [COMA-dataset.zip](https://drive.google.com/file/d/1LNhYee-h5_m1RVzguZvT2oPUsJAK28ac/view?usp=sharing). 
+
+Here are the trained models on Google Drive [DFAUST-Models.zip] (https://drive.google.com/file/d/1Eq93ZX0uewJZBHuPdNeFmgCm5dl7WjLm/view?usp=sharing) and [COMA-Models.zip](https://drive.google.com/file/d/185hIebXxBDvDezteXDzXfZCdQRODo_Ck/view?usp=sharing). Please put the models in the folder as the structure below. 
 
 ### Preprocessing for your custom dataset:
 
@@ -44,11 +46,10 @@ The following is the organization of the dataset directories expected by the cod
 
 * data **root_dir**/
   * **dataset** name/ (eg DFAUST-dataset)
-    * template
-      * template.obj
-      * downsample_method/
-        * downsampling_matrices.pkl (created by the code the first time you run it)
-    * preprocessed/
+    * COMA_downsample
+      * downsampling_matrices.pkl (created by the code the first time you run it)
+      * pai_matrices.pkl
+    * Processed/
       * sliced
         * train.npy (number_meshes, number_vertices, 3) (no Faces because they all share topology)
         * test.npy 
@@ -58,6 +59,17 @@ The following is the organization of the dataset directories expected by the cod
         * paths_train.npy (created by data_generation.py)
         * paths_val.npy (created by data_generation.py)
         * paths_test.npy (created by data_generation.py)
+        * mean.tch
+        * std.tch
+    * results
+      * HSDConvFinal-x (hierarchical SDConv result)
+        * checkpoints
+        * run.log
+      * SDConvFinal-x (SDConv result)
+        * checkpoints
+        * run.log
+    * template.obj
+
 
 
 
