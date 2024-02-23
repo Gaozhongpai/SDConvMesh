@@ -12,7 +12,7 @@ from math import ceil, sqrt
 from device import device
 import numpy as np
 from utils import laplacian, sparse_mx_to_torch_sparse_tensor
-from convs import SpiralConv, chebyshevConv, FeaStConv
+from convs import SpiralConv, chebyshevConv, FeaStConv2
 
 
 class PaiConv(nn.Module):
@@ -157,7 +157,7 @@ class PaiAutoencoder(nn.Module):
         
         self.t_vertices = [torch.cat([torch.sin(2*x), torch.cos(x)], dim=-1) for x in self.t_vertices]
         
-        self.ConvOp = FeaStConv # PaiConv, PaiConvTiny, SpiralConv, chebyshevConv, FeaStConv
+        self.ConvOp = FeaStConv2 # PaiConv, PaiConvTiny, SpiralConv, chebyshevConv, FeaStConv2
         
         if self.ConvOp == chebyshevConv:
             print("Computing Graph Laplacians ..")

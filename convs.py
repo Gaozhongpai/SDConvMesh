@@ -6,7 +6,7 @@ import math
 from torch_geometric.nn.conv import MessagePassing
 from torch_geometric.utils import remove_self_loops, add_self_loops, softmax
 import torch.nn.functional as F
-
+from torch.nn import Parameter
 
 class SpiralConv(nn.Module):
     def __init__(self, num_pts, in_c, spiral_size,out_c,activation='elu',bias=True):
@@ -118,30 +118,80 @@ def normal(tensor, mean, std):
         tensor.data.normal_(mean, std)
 
 
+class FeaStConv2(nn.Module):
+    def __init__(self, num_pts, in_c, num_neighbor, out_c,activation='relu',bias=True): # ,device=None):
+        super(FeaStConv2,self).__init__()
+        self.in_c = in_c
+        self.out_c = out_c
+        self.heads = num_neighbor
+        self.bias = nn.Parameter(torch.Tensor(out_c))
+        self.mlp = nn.Linear(in_c, self.heads) 
+        self.mlp_out = nn.Linear(in_c, self.heads * out_c, bias=False)
+        self.softmax = nn.Softmax(dim=1)
+        self.zero_padding = torch.ones((1, num_pts, 1))
+        self.zero_padding[0,-1,0] = 0.0
+
+        self.reset_parameters()
+
+        if activation == 'relu':
+            self.activation = nn.ReLU()
+        elif activation == 'elu':
+            self.activation = nn.ELU()
+        elif activation == 'identity':
+            self.activation = lambda x: x
+        else:
+            raise NotImplementedError()
+    
+    @staticmethod
+    def normal(tensor, mean, std):
+        if tensor is not None:
+            tensor.data.normal_(mean, std)
+
+    def reset_parameters(self):
+        self.normal(self.bias, mean=0, std=0.1)
+
+    def forward(self,x,t_vertex,neighbor_index):
+        bsize, num_pts, feats = x.size()
+        _, _, num_neighbor = neighbor_index.size()
+        
+        neighbor_index = neighbor_index.view(bsize*num_pts*num_neighbor) # [1d array of batch,vertx,vertx-adj]
+        batch_index = torch.arange(bsize, device=x.device).view(-1,1).repeat([1,num_pts*num_neighbor]).view(-1).long() 
+        x_neighbors = x[batch_index,neighbor_index,:].view(bsize*num_pts, num_neighbor, feats)
+        #### relative position ####
+        x_relative = x_neighbors - x_neighbors[:, 0:1, :]
+
+        q = self.softmax(self.mlp(x_relative.view(-1, feats))).view(bsize, num_pts, num_neighbor*self.heads, -1)
+        x_j = self.mlp_out(x_neighbors.view(-1, feats)).view(bsize, num_pts, num_neighbor*self.heads, -1)
+        out_feat =  (x_j * q).sum(dim=2) + self.bias
+        out_feat = out_feat * self.zero_padding.to(out_feat.device)
+        return self.activation(out_feat)
+
+
+
 class FeaStConv(MessagePassing):
     def __init__(self,
-                 num_pts,
                  in_channels,
-                 kernal_size,
                  out_channels,
-                 activation='elu', 
-                 bias=True):    
-        super(FeaStConv, self).__init__(aggr='mean')
+                 heads=8,
+                 bias=True,
+                 t_inv=True,
+                 **kwargs):
+        super(FeaStConv, self).__init__(aggr='mean', **kwargs)
 
         self.in_channels = in_channels
         self.out_channels = out_channels
-        self.heads = 8
-        self.t_inv = True
+        self.heads = heads
+        self.t_inv = t_inv
 
-        self.weight = nn.Parameter(torch.Tensor(in_channels,
-                                             self.heads * out_channels))
-        self.u = nn.Parameter(torch.Tensor(in_channels, self.heads))
-        self.c = nn.Parameter(torch.Tensor(self.heads))
+        self.weight = Parameter(torch.Tensor(in_channels,
+                                             heads * out_channels))
+        self.u = Parameter(torch.Tensor(in_channels, heads))
+        self.c = Parameter(torch.Tensor(heads))
         if not self.t_inv:
-            self.v = nn.Parameter(torch.Tensor(in_channels, self.heads))
+            self.v = Parameter(torch.Tensor(in_channels, heads))
 
         if bias:
-            self.bias = nn.Parameter(torch.Tensor(out_channels))
+            self.bias = Parameter(torch.Tensor(out_channels))
         else:
             self.register_parameter('bias', None)
 
@@ -155,9 +205,9 @@ class FeaStConv(MessagePassing):
         if not self.t_inv:
             normal(self.v, mean=0, std=0.1)
 
-    def forward(self, x, t_vertex, edge_index):
-        edge_index, _ = remove_self_loops(edge_index[0])
-        edge_index, _ = add_self_loops(edge_index, num_nodes=x.size(1))
+    def forward(self, x, edge_index):
+        edge_index, _ = remove_self_loops(edge_index)
+        edge_index, _ = add_self_loops(edge_index, num_nodes=x.size(0))
 
         return self.propagate(edge_index, x=x, num_nodes=x.size(0))
 

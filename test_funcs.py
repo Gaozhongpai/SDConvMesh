@@ -12,25 +12,27 @@ def test_autoencoder_dataloader(device, model, dataloader_test, shapedata, mm_co
     shapedata_std = torch.Tensor(shapedata.std).to(device)
     with torch.no_grad():
         start_time = time.time()
-        for i, sample_dict in enumerate(tqdm(dataloader_test)):
-            tx = sample_dict['points'].to(device)
-            prediction = model(tx)  
-            if i==0:
-                predictions = copy.deepcopy(prediction)
-            else:
-                predictions = torch.cat([predictions,prediction],0) 
+        for t in range(100):
+            print("t={}".format(t))
+            for i, sample_dict in enumerate(tqdm(dataloader_test)):
+                tx = sample_dict['points'].to(device)
+                prediction = model(tx)  
+                if i==0:
+                    predictions = copy.deepcopy(prediction)
+                else:
+                    predictions = torch.cat([predictions,prediction],0) 
+                    
+                if dataloader_test.dataset.dummy_node:
+                    x_recon = prediction[:,:-1]
+                    x = tx[:,:-1]
+                else:
+                    x_recon = prediction
+                    x = tx
+                l1_loss+= torch.mean(torch.abs(x_recon-x))*x.shape[0]/float(len(dataloader_test.dataset))
                 
-            if dataloader_test.dataset.dummy_node:
-                x_recon = prediction[:,:-1]
-                x = tx[:,:-1]
-            else:
-                x_recon = prediction
-                x = tx
-            l1_loss+= torch.mean(torch.abs(x_recon-x))*x.shape[0]/float(len(dataloader_test.dataset))
-            
-            x_recon = (x_recon * shapedata_std + shapedata_mean) * mm_constant
-            x = (x * shapedata_std + shapedata_mean) * mm_constant
-            l2_loss+= torch.mean(torch.sqrt(torch.sum((x_recon - x)**2,dim=2)))*x.shape[0]/float(len(dataloader_test.dataset))
+                x_recon = (x_recon * shapedata_std + shapedata_mean) * mm_constant
+                x = (x * shapedata_std + shapedata_mean) * mm_constant
+                l2_loss+= torch.mean(torch.sqrt(torch.sum((x_recon - x)**2,dim=2)))*x.shape[0]/float(len(dataloader_test.dataset))
         print("--- %s seconds ---" % (time.time() - start_time))
         predictions = predictions.cpu()
         # l1_loss = l1_loss.item()
