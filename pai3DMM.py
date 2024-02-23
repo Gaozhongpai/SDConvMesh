@@ -33,15 +33,15 @@ from compare.spiral_plus_utils import preprocess_spiral
 
 meshpackage = 'trimesh' # 'mpi-mesh', trimesh'
 
-root_dir = '/media/pai/Disk/data/DFAUST-dataset'   ## 'COMA-dataset' or 'DFAUST-dataset' or 'MANO-dataset''
+root_dir = 'dataset/COMA-dataset'   ## 'COMA-dataset' or 'DFAUST-dataset' or 'MANO-dataset''
 is_hierarchical = False             ## 'True' or 'False' for learnable up/down sampling
-is_same_param = 0                   ## '0', '1', '2' where '1' for increaes channel and '2' for increase base 
+is_same_param = 1                   ## '0', '1', '2' where '1' for increaes channel and '2' for increase base 
 is_old_filter = False               ## 'False' or 'True' to use different spectral filter
 mode = 'train'                       ## 'test' or 'train' to train or test the models
-ConvOp = SpiralConv                 ## PaiConv, PaiConvTiny, SpiralConv, chebyshevConv, FeaStConv2
-is_spiralPlusPlus = True
+ConvOp = chebyshevConv                 ## PaiConv, PaiConvTiny, SpiralConv, chebyshevConv, FeaStConv2
+is_spiralPlusPlus = False
 
-generative_model = 'SpiralPlusPlus' # method name # SDConvFinal
+generative_model = 'Spiral' # method name # SDConvFinal
 if not is_old_filter: 
     generative_model = generative_model + '-x'
 if is_hierarchical:
@@ -78,9 +78,36 @@ if is_same_param == 1:
     if "COMA" in root_dir: ## COMA
         filter_sizes_enc = [3, 32, 45, 64, 128]
         filter_sizes_dec = [128, 80, 48, 32, 32, 3]
+        
+        if ConvOp == SpiralConv:
+            # spiral
+            filter_sizes_enc = [3, 32, 48, 64, 128]
+            filter_sizes_dec = [128, 96, 64, 48, 32, 3]
+            if is_spiralPlusPlus:
+                # spiral++
+                filter_sizes_enc = [3, 48, 60, 64, 128]
+                filter_sizes_dec = [128, 96, 64, 64, 32, 3]
+            
+        elif ConvOp == chebyshevConv:
+            # COMA
+            filter_sizes_enc = [3, 50, 64, 112, 128]
+            filter_sizes_dec = [128, 112, 96, 64, 50, 3]
+        
     elif "DFAUST" in root_dir: ## dfaustData
         filter_sizes_enc = [3, 32, 42, 80, 128]
         filter_sizes_dec = [128, 80, 64, 40, 32, 3]
+        
+        if ConvOp == SpiralConv:
+            # spiral
+            filter_sizes_enc = [3, 32, 64, 64, 128]
+            filter_sizes_dec = [128, 110, 64, 64, 32, 3]
+            if is_spiralPlusPlus:
+                # spiral++
+                filter_sizes_enc = [3, 32, 64, 80, 128]
+                filter_sizes_dec = [128, 112, 64, 64, 36, 3]
+        elif ConvOp == chebyshevConv:
+            filter_sizes_enc = [3, 64, 96, 112, 128]
+            filter_sizes_dec = [128, 112, 96, 96, 64, 3]
 
 base_size = 32
 if is_same_param == 2: 
