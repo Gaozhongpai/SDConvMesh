@@ -38,10 +38,12 @@ is_hierarchical = False             ## 'True' or 'False' for learnable up/down s
 is_same_param = 1                   ## '0', '1', '2' where '1' for increaes channel and '2' for increase base 
 is_old_filter = False               ## 'False' or 'True' to use different spectral filter
 mode = 'train'                       ## 'test' or 'train' to train or test the models
-ConvOp = chebyshevConv                 ## PaiConv, PaiConvTiny, SpiralConv, chebyshevConv, FeaStConv2
-is_spiralPlusPlus = False
+ConvOp = SpiralConv                 ## PaiConv, PaiConvTiny, SpiralConv, chebyshevConv, FeaStConv2
+is_spiralPlusPlus = True
 
 generative_model = 'Spiral' # method name # SDConvFinal
+if is_spiralPlusPlus and ConvOp == SpiralConv:
+    generative_model = generative_model + 'PlusPlus' 
 if not is_old_filter: 
     generative_model = generative_model + '-x'
 if is_hierarchical:
