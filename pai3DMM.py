@@ -179,7 +179,7 @@ else:
     F = downsampling_matrices['F']
 
 vertices = [torch.cat([torch.tensor(M_verts_faces[i][0], dtype=torch.float32), torch.zeros((1, 3), dtype=torch.float32)], 0).to(device) for i in range(len(M_verts_faces))]
-if ConvOp != PaiConv or ConvOp != PaiConvTiny:
+if ConvOp != PaiConv and ConvOp != PaiConvTiny:
     vertices = None
 #%%
 if shapedata.meshpackage == 'mpi-mesh':
@@ -235,7 +235,9 @@ if ConvOp == SpiralConv:
     tspirals = [torch.from_numpy(s[0]).long() for s in spirals_np]
     kernal_size = spiral_sizes
     Adj = tspirals
-    
+
+if ConvOp == chebyshevConv:
+    kernal_size = [6, 6, 6, 6, 6]
 
 #%%
 torch.manual_seed(args['seed'])
