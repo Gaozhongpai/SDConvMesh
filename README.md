@@ -31,7 +31,7 @@ $ pip install -r requirements.txt
 
 Here are the pre-processed datasets on Google Drive: [DFAUST-dataset.zip](https://drive.google.com/file/d/14UZq9JkDqjLLBiqHkSoIBZpkW6PQ_Xbi/view?usp=sharing) and [COMA-dataset.zip](https://drive.google.com/file/d/1LNhYee-h5_m1RVzguZvT2oPUsJAK28ac/view?usp=sharing). 
 
-Here are the trained models on Google Drive [DFAUST-Models.zip] (https://drive.google.com/file/d/1Eq93ZX0uewJZBHuPdNeFmgCm5dl7WjLm/view?usp=sharing) and [COMA-Models.zip](https://drive.google.com/file/d/185hIebXxBDvDezteXDzXfZCdQRODo_Ck/view?usp=sharing). Please put the models in the folder as the structure below. 
+Here are the trained models on Google Drive [DFAUST-Models.zip](https://drive.google.com/file/d/1Eq93ZX0uewJZBHuPdNeFmgCm5dl7WjLm/view?usp=sharing) and [COMA-Models.zip](https://drive.google.com/file/d/185hIebXxBDvDezteXDzXfZCdQRODo_Ck/view?usp=sharing). Please put the models in the folder as the structure below. 
 
 ### Preprocessing for your custom dataset:
 
