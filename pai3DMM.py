@@ -37,12 +37,11 @@ root_dir = '/media/pai/Disk/data/DFAUST-dataset'   ## 'COMA-dataset' or 'DFAUST-
 is_hierarchical = False             ## 'True' or 'False' for learnable up/down sampling
 is_same_param = 0                   ## '0', '1', '2' where '1' for increaes channel and '2' for increase base 
 is_old_filter = False               ## 'False' or 'True' to use different spectral filter
-mode = 'SpiralPlusPlus'                       ## 'test' or 'train' to train or test the models
+mode = 'train'                       ## 'test' or 'train' to train or test the models
 ConvOp = SpiralConv                 ## PaiConv, PaiConvTiny, SpiralConv, chebyshevConv, FeaStConv2
 is_spiralPlusPlus = True
 
-
-generative_model = 'test' # method name # SDConvFinal
+generative_model = 'SpiralPlusPlus' # method name # SDConvFinal
 if not is_old_filter: 
     generative_model = generative_model + '-x'
 if is_hierarchical:
@@ -220,7 +219,7 @@ Adj = [torch.cat([torch.cat([torch.arange(x.shape[0]-1), torch.tensor([-1])]).un
 if ConvOp == SpiralConv:
     spiral_sizes = []
     if is_spiralPlusPlus:
-        seq_length = 10
+        seq_length = 9
         tspirals = [preprocess_spiral(Mi.faces, seq_length=seq_length) for Mi in M]
         for i in range(len(tspirals)):
             spiral_indice = -1 * np.ones((tspirals[i].shape[0]+1,tspirals[i].shape[1]))

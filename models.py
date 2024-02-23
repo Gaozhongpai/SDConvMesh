@@ -4,7 +4,6 @@ import math
 import pdb
 import copy
 from numpy import inf
-from sparsemax import Sparsemax
 import torch.nn.functional as F
 import math
 from attpool import AttPool, PaiAttPool, PaiAttPool2, PaiAttPool3
@@ -12,8 +11,7 @@ from math import ceil, sqrt
 from device import device
 import numpy as np
 from utils import laplacian, sparse_mx_to_torch_sparse_tensor
-from convs import SpiralConv, chebyshevConv, FeaStConv2
-
+from compare.convs import chebyshevConv
 
 class PaiConv(nn.Module):
     def __init__(self, num_pts, in_c, num_neighbor, out_c, activation='elu',bias=True): # ,device=None):
