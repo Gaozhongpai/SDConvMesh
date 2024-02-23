@@ -6,12 +6,12 @@ plt.rcParams["font.family"] = "Times New Roman"
 plt.rcParams["font.size"] = 15
 # font = {'family' : 'Times New Roman', 'size': 10}
 # matplotlib.rc('font', **font)
-x = [2.021, 3.582, 3.173, 3.235, 3.235, 4.784]
+x = [2.643, 3.582, 3.173, 3.235, 3.235, 4.784, 2.211]
 # x = [53, 61, 62, 64 ,90]
-y = [5.258, 5.238, 3.492, 3.884, 3.330, 6.096]
-s = [446, 361, 2478, 518, 526, 441]
-n = ["Spiral", "COMA", "LSA-Conv", "SDConv* (ours)", "HSDConv (ours)", "FeaStNet"]
-colors = ['red', 'green', 'blue', 'orange', 'purple', 'brown']
+y = [5.258, 5.238, 3.492, 3.884, 3.330, 6.096, 5.000]
+s = [446, 361, 2478, 518, 526, 441, 437]
+n = ["Spiral", "COMA", "LSA-Conv", "SDConv* (ours)", "HSDConv (ours)", "FeaStNet", "Spiral++"]
+colors = ['red', 'green', 'blue', 'orange', 'purple', 'brown', 'pink']
 scatter = plt.scatter(x, y, s=s, color=colors)
 # Setting x and y axes limits
 plt.xlim(1.5, 6.5)  # Set the start and end points for the x-axis
@@ -59,6 +59,12 @@ plt.annotate(n[5], # this is the text
                 color=colors[5],
                 textcoords="offset points", # how to position the text
                 xytext=(0,-24), # distance from text to points (x,y)
+                ha='center') # horizontal alignment can be left, right or center
+plt.annotate(n[6], # this is the text
+                (x[6],y[6]), # this is the point to label
+                color=colors[6],
+                textcoords="offset points", # how to position the text
+                xytext=(0,15), # distance from text to points (x,y)
                 ha='center') # horizontal alignment can be left, right or center
 plt.xlabel("Time of inferring test set (s)")
 plt.ylabel("L2 errors (mm)")
