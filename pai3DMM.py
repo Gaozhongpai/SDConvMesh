@@ -25,15 +25,18 @@ from device import device
 import torch
 from tensorboardX import SummaryWriter
 from utils import IOStream
-
+from spiral_utils import get_adj_trigs, generate_spirals
 from sklearn.metrics.pairwise import euclidean_distances
+from convs import SpiralConv, chebyshevConv, FeaStConv
+from models import PaiConv, PaiConvTiny
 meshpackage = 'trimesh' # 'mpi-mesh', trimesh'
 
 root_dir = '/media/pai/Disk/data/DFAUST-dataset'   ## 'COMA-dataset' or 'DFAUST-dataset' or 'MANO-dataset''
-is_hierarchical = False              ## 'True' or 'False' for learnable up/down sampling
+is_hierarchical = False             ## 'True' or 'False' for learnable up/down sampling
 is_same_param = 0                   ## '0', '1', '2' where '1' for increaes channel and '2' for increase base 
 is_old_filter = False               ## 'False' or 'True' to use different spectral filter
 mode = 'test'                       ## 'test' or 'train' to train or test the models
+ConvOp = SpiralConv                 ## PaiConv, PaiConvTiny, SpiralConv, chebyshevConv, FeaStConv2
 
 generative_model = 'test' # method name # SDConvFinal
 if not is_old_filter: 
@@ -176,7 +179,8 @@ else:
     F = downsampling_matrices['F']
 
 vertices = [torch.cat([torch.tensor(M_verts_faces[i][0], dtype=torch.float32), torch.zeros((1, 3), dtype=torch.float32)], 0).to(device) for i in range(len(M_verts_faces))]
-
+if ConvOp != PaiConv or ConvOp != PaiConvTiny:
+    vertices = None
 #%%
 if shapedata.meshpackage == 'mpi-mesh':
     sizes = [x.v.shape[0] for x in M]
@@ -206,6 +210,32 @@ else:
 
 tD = [sparse_mx_to_torch_sparse_tensor(s) for s in bD]
 tU = [sparse_mx_to_torch_sparse_tensor(s) for s in bU]
+Adj = [torch.cat([torch.cat([torch.arange(x.shape[0]-1), torch.tensor([-1])]).unsqueeze(1), x], 1) for x in Adj]
+
+if ConvOp == SpiralConv:
+    ## for Spiral
+    if "DFAUST" in root_dir: ## COMA
+        reference_points = [[414]]  # [[3567,4051,4597]] used for COMA with 3 disconnected components
+    if "COMA" in root_dir: ## COMA
+        reference_points = [[3567,4051,4597]] # used for COMA with 3 disconnected components
+    # Needs also an extra check to enforce points to belong to different disconnected component at each hierarchy level
+    print("Calculating reference points for downsampled versions..")
+    for i in range(len(args['ds_factors'])):
+        dist = euclidean_distances(M[i+1].vertices, M[0].vertices[reference_points[0]])
+        reference_points.append(np.argmin(dist,axis=0).tolist())
+        
+    Adj_spiral, Trigs_spiral = get_adj_trigs(A, F, shapedata.reference_mesh, meshpackage = shapedata.meshpackage)
+    args['dilation'] = [2, 2, 1, 1, 1] 
+    spirals_np, spiral_sizes,spirals = generate_spirals(args['step_sizes'], 
+                                                        M, Adj_spiral, Trigs_spiral, 
+                                                        reference_points = reference_points, 
+                                                        dilation = args['dilation'], random = False, 
+                                                        meshpackage = shapedata.meshpackage, 
+                                                        counter_clockwise = True)
+    tspirals = [torch.from_numpy(s[0]).long() for s in spirals_np]
+    kernal_size = spiral_sizes
+    Adj = tspirals
+    
 
 #%%
 torch.manual_seed(args['seed'])
@@ -259,6 +289,7 @@ model = PaiAutoencoder(filters_enc = args['filter_sizes_enc'],
                             num_neighbors=kernal_size,
                             x_neighbors=Adj,
                             D=tD, U=tU, A=A,
+                            ConvOp=ConvOp,
                             is_hierarchical=is_hierarchical,
                             is_old_filter=is_old_filter,
                             base_size=base_size).to(device)

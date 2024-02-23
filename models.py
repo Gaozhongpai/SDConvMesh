@@ -119,12 +119,13 @@ class PaiConvTiny(nn.Module):
 
 class PaiAutoencoder(nn.Module):
     def __init__(self, filters_enc, filters_dec, latent_size, 
-                 t_vertices, sizes, num_neighbors, x_neighbors, D, U, A, activation = 'elu', 
+                 t_vertices, sizes, num_neighbors, x_neighbors, D, U, A, 
+                 ConvOp, activation = 'elu', 
                  is_hierarchical=True, is_old_filter=False, base_size=32):
         super(PaiAutoencoder, self).__init__()
         self.latent_size = latent_size
         self.sizes = sizes
-        self.x_neighbors = [torch.cat([torch.cat([torch.arange(x.shape[0]-1), torch.tensor([-1])]).unsqueeze(1), x], 1) for x in x_neighbors]
+        self.x_neighbors = x_neighbors # [torch.cat([torch.cat([torch.arange(x.shape[0]-1), torch.tensor([-1])]).unsqueeze(1), x], 1) for x in x_neighbors]
         #self.x_neighbors = [x.float().cuda() for x in x_neighbors]
         self.filters_enc = filters_enc
         self.filters_dec = filters_dec
@@ -138,27 +139,38 @@ class PaiAutoencoder(nn.Module):
 
         mappingsize = 64
         self.o_vertices = t_vertices
-        if not self.is_old_filter:
-        ## v1
-            self.B_1 = nn.Parameter(torch.randn(24, mappingsize//2) , requires_grad=False)
-            self.B_2 = nn.Parameter(torch.randn(3, mappingsize//2) , requires_grad=False)  
-            self.t_vertices = [torch.cat([(x[self.x_neighbors[i]][:, 1:] - x[:, None]).view(x.shape[0], -1), x], dim=1) for i, x in enumerate(t_vertices)]
-            self.t_vertices = [((x - x.min(dim=0, keepdim=True)[0]) / (x.max(dim=0, keepdim=True)[0] \
-                                - x.min(dim=0, keepdim=True)[0]) - 0.5)*5 for x in self.t_vertices]
-            self.t_vertices = [torch.cat([2.*math.pi*x[:, :24] @ (self.B_1.data).to(x),
-                                        2.*math.pi*x[:, 24:] @ (self.B_2.data).to(x)], dim=1) for x in self.t_vertices]
+        self.ConvOp = ConvOp # PaiConv, PaiConvTiny, SpiralConv, chebyshevConv, FeaStConv2
+        
+        if t_vertices:
+            if not self.is_old_filter:
+            ## v1
+                self.B_1 = nn.Parameter(torch.randn(24, mappingsize//2) , requires_grad=False)
+                self.B_2 = nn.Parameter(torch.randn(3, mappingsize//2) , requires_grad=False)  
+                self.t_vertices = [torch.cat([(x[self.x_neighbors[i]][:, 1:] - x[:, None]).view(x.shape[0], -1), x], dim=1) for i, x in enumerate(t_vertices)]
+                self.t_vertices = [((x - x.min(dim=0, keepdim=True)[0]) / (x.max(dim=0, keepdim=True)[0] \
+                                    - x.min(dim=0, keepdim=True)[0]) - 0.5)*5 for x in self.t_vertices]
+                self.t_vertices = [torch.cat([2.*math.pi*x[:, :24] @ (self.B_1.data).to(x),
+                                            2.*math.pi*x[:, 24:] @ (self.B_2.data).to(x)], dim=1) for x in self.t_vertices]
+            else:
+            ## v2
+                self.B = nn.Parameter(torch.randn(6, mappingsize) , requires_grad=False)
+                self.t_vertices = [torch.cat([x[self.x_neighbors[i]][:, 1:].mean(dim=1) - x, x], dim=-1) for i, x in enumerate(t_vertices)]
+                self.t_vertices = [2.*math.pi*x @ (self.B.data).to(x) for x in self.t_vertices]
+                self.t_vertices = [((x - x.min(dim=0, keepdim=True)[0]) / (x.max(dim=0, keepdim=True)[0] \
+                                    - x.min(dim=0, keepdim=True)[0]) - 0.5)*100 for x in self.t_vertices]
+            
+            self.t_vertices = [torch.cat([torch.sin(2*x), torch.cos(x)], dim=-1) for x in self.t_vertices]
+            
+            ref_mean = torch.mean(t_vertices[0], dim=0)
+            ref_std = torch.mean(t_vertices[0], dim=0)
+            nV_ref = [0.1 * (t_vertices[i] - ref_mean)/ref_std for i in range(len(t_vertices))]
+
+            self.attpoolenc, self.attpooldec = self.init_attpool(nV_ref)
+            self.attpoolenc = torch.nn.ModuleList(self.attpoolenc)
+            self.attpooldec = torch.nn.ModuleList(self.attpooldec)
         else:
-        ## v2
-            self.B = nn.Parameter(torch.randn(6, mappingsize) , requires_grad=False)
-            self.t_vertices = [torch.cat([x[self.x_neighbors[i]][:, 1:].mean(dim=1) - x, x], dim=-1) for i, x in enumerate(t_vertices)]
-            self.t_vertices = [2.*math.pi*x @ (self.B.data).to(x) for x in self.t_vertices]
-            self.t_vertices = [((x - x.min(dim=0, keepdim=True)[0]) / (x.max(dim=0, keepdim=True)[0] \
-                                - x.min(dim=0, keepdim=True)[0]) - 0.5)*100 for x in self.t_vertices]
-        
-        self.t_vertices = [torch.cat([torch.sin(2*x), torch.cos(x)], dim=-1) for x in self.t_vertices]
-        
-        self.ConvOp = FeaStConv2 # PaiConv, PaiConvTiny, SpiralConv, chebyshevConv, FeaStConv2
-        
+            self.t_vertices = [[] for _ in range(len(num_neighbors))]
+            
         if self.ConvOp == chebyshevConv:
             print("Computing Graph Laplacians ..")
             self.A = []
@@ -202,13 +214,7 @@ class PaiAutoencoder(nn.Module):
                     
         self.dconv = nn.ModuleList(self.dconv)
 
-        ref_mean = torch.mean(t_vertices[0], dim=0)
-        ref_std = torch.mean(t_vertices[0], dim=0)
-        nV_ref = [0.1 * (t_vertices[i] - ref_mean)/ref_std for i in range(len(t_vertices))]
-
-        self.attpoolenc, self.attpooldec = self.init_attpool(nV_ref)
-        self.attpoolenc = torch.nn.ModuleList(self.attpoolenc)
-        self.attpooldec = torch.nn.ModuleList(self.attpooldec)
+        
 
     def init_attpool(self, V_ref=None):
         attpooldec = []
@@ -307,7 +313,7 @@ class PaiAutoencoder(nn.Module):
     def forward(self,x):
         bsize = x.size(0)
         # alpha = torch.linspace(0, 1, steps=5).cuda().unsqueeze(1)
-        if self.is_hierarchical:
+        if self.is_hierarchical and self.t_vertices:
             self.update()
         z = self.encode(x)
         # z[0] = z[18] - z[7] + z[8]

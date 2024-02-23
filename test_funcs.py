@@ -12,7 +12,8 @@ def test_autoencoder_dataloader(device, model, dataloader_test, shapedata, mm_co
     shapedata_std = torch.Tensor(shapedata.std).to(device)
     with torch.no_grad():
         start_time = time.time()
-        for t in range(100):
+        repeat = 100 # 100
+        for t in range(repeat):
             print("t={}".format(t))
             for i, sample_dict in enumerate(tqdm(dataloader_test)):
                 tx = sample_dict['points'].to(device)
