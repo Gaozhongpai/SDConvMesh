@@ -106,7 +106,9 @@ class chebyshevConv(nn.Module):
         # Filter: Fin*Fout filters of order K, i.e. one filterbank per feature pair.
         # W = self._weight_variable([Fin * K, Fout], regularization=False)
         x = torch.mm(x, self.weight) + self.bias  # N*M x Fout
-        return self.activation(x.view(N, M, -1))  # N x M x Fout
+        x = self.activation(x.view(N, M, -1))  # N x M x Fout
+        x = torch.cat([x, torch.zeros(N, 1, x.shape[-1]).to(x)], dim=1)
+        return x
 
     def __repr__(self):
         return self.__class__.__name__ + ' (' \

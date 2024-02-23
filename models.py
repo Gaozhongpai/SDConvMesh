@@ -250,11 +250,8 @@ class PaiAutoencoder(nn.Module):
         D = self.D
         t_vertices = self.t_vertices
         for i in range(len(self.num_neighbors)-1):
-            if self.ConvOp == chebyshevConv:
-                x = self.conv[i](x[:, :-1],self.L[i])
-                x = torch.cat([x, torch.zeros(bsize, 1, x.shape[-1]).to(x)], dim=1)
-            else:
-                x = self.conv[i](x, t_vertices[i], S[i].repeat(bsize,1,1))
+            x = self.conv[i](x, t_vertices[i], S[i].repeat(bsize,1,1)) \
+                if not self.ConvOp == chebyshevConv else self.conv[i](x[:, :-1],self.L[i])
             # x = torch.matmul(D[i],x)
             x = self.poolwT(x, D[i]) if not self.is_hierarchical else self.attpoolenc[i](x) #, t_vertices[i], t_vertices[i+1]) #, t_vertices[i+1])
             # self.t_vertices[i+1] = self.attpoolenc[i](self.t_vertices[i][None]).squeeze().detach() #, t_vertices[i])#, t_vertices[i+1])
@@ -280,16 +277,10 @@ class PaiAutoencoder(nn.Module):
         for i in range(len(self.num_neighbors)-1):
             # x = torch.matmul(U[-1-i],x)
             x = self.poolwT(x, U[-1-i]) if not self.is_hierarchical else self.attpooldec[-i-1](x) #, t_vertices[-i-1], t_vertices[-i-2]) #, t_vertices[-i-2])
-            if self.ConvOp == chebyshevConv:
-                x = self.dconv[i](x[:, :-1],self.L[-2-i])
-                x = torch.cat([x, torch.zeros(bsize, 1, x.shape[-1]).to(x)], dim=1)
-            else:
-                x = self.dconv[i](x, t_vertices[-2-i], S[-2-i].repeat(bsize,1,1))  
-        if self.ConvOp == chebyshevConv:
-            x = self.dconv[-1](x[:, :-1],self.L[0])
-            x = torch.cat([x, torch.zeros(bsize, 1, x.shape[-1]).to(x)], dim=1)
-        else:
-            x = self.dconv[-1](x, t_vertices[0], S[0].repeat(bsize,1,1))
+            x = self.dconv[i](x, t_vertices[-2-i], S[-2-i].repeat(bsize,1,1))  \
+                    if not self.ConvOp == chebyshevConv else self.dconv[i](x[:, :-1],self.L[-2-i]) 
+        x = self.dconv[-1](x, t_vertices[0], S[0].repeat(bsize,1,1)) \
+            if not self.ConvOp == chebyshevConv else self.dconv[-1](x[:, :-1],self.L[0])
         return x
 
     def update(self):
