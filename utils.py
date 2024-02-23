@@ -7,7 +7,37 @@ import torch
 import math
 from collections import deque
 import scipy.sparse as sp
+import scipy
 
+
+def rescale_L(L, lmax=2):
+    """Rescale the Laplacian eigenvalues in [-1,1]."""
+    M, M = L.shape
+    I = scipy.sparse.identity(M, format='csr', dtype=L.dtype)
+    L /= lmax / 2
+    L -= I
+    return L
+
+def laplacian(W, normalized=True):
+    """Return the Laplacian of the weigth matrix."""
+
+    # Degree matrix.
+    d = W.sum(axis=0)
+
+    # Laplacian matrix.
+    if not normalized:
+        D = scipy.sparse.diags(d.A.squeeze(), 0)
+        L = D - W
+    else:
+        d += np.spacing(np.array(0, W.dtype))
+        d = 1 / np.sqrt(d)
+        D = scipy.sparse.diags(d.A.squeeze(), 0)
+        I = scipy.sparse.identity(d.size, dtype=W.dtype)
+        L = I - D * W * D
+
+    # assert np.abs(L - L.T).mean() < 1e-9
+    assert type(L) is scipy.sparse.csr.csr_matrix
+    return L
 
 def normalize(mx):
     """Row-normalize sparse matrix"""

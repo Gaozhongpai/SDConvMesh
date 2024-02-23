@@ -11,6 +11,9 @@ from attpool import AttPool, PaiAttPool, PaiAttPool2, PaiAttPool3
 from math import ceil, sqrt
 from device import device
 import numpy as np
+from utils import laplacian, sparse_mx_to_torch_sparse_tensor
+from convs import SpiralConv, chebyshevConv, FeaStConv
+
 
 class PaiConv(nn.Module):
     def __init__(self, num_pts, in_c, num_neighbor, out_c, activation='elu',bias=True): # ,device=None):
@@ -112,11 +115,11 @@ class PaiConvTiny(nn.Module):
         out_feat = out_feat * self.zero_padding.to(out_feat.device)
         x_res = self.mlp_out(x.view(-1, self.in_c)).view(bsize, -1, self.out_c)
         return out_feat + x_res
-    
+
 
 class PaiAutoencoder(nn.Module):
     def __init__(self, filters_enc, filters_dec, latent_size, 
-                 t_vertices, sizes, num_neighbors, x_neighbors, D, U, activation = 'elu', 
+                 t_vertices, sizes, num_neighbors, x_neighbors, D, U, A, activation = 'elu', 
                  is_hierarchical=True, is_old_filter=False, base_size=32):
         super(PaiAutoencoder, self).__init__()
         self.latent_size = latent_size
@@ -154,6 +157,21 @@ class PaiAutoencoder(nn.Module):
         
         self.t_vertices = [torch.cat([torch.sin(2*x), torch.cos(x)], dim=-1) for x in self.t_vertices]
         
+        self.ConvOp = FeaStConv # PaiConv, PaiConvTiny, SpiralConv, chebyshevConv, FeaStConv
+        
+        if self.ConvOp == chebyshevConv:
+            print("Computing Graph Laplacians ..")
+            self.A = []
+            for x in A:
+                x.data = np.ones(x.data.shape)
+                # build symmetric adjacency matrix
+                x = x + x.T.multiply(x.T > x) - x.multiply(x.T > x)
+                #x = x + sp.eye(x.shape[0])
+                self.A.append(x.astype('float32'))
+            self.L = [laplacian(a, normalized=True) for a in self.A]
+            self.L = [nn.Parameter(sparse_mx_to_torch_sparse_tensor(x, is_L=True), False) for x in self.L]
+            self.L = nn.ParameterList(self.L)
+        
         self.eps = 1e-7
         #self.reset_parameters()
         #self.device = device
@@ -161,8 +179,8 @@ class PaiAutoencoder(nn.Module):
         self.conv = []
         input_size = filters_enc[0]
         for i in range(len(num_neighbors)-1):
-            self.conv.append(PaiConvTiny(self.x_neighbors[i].shape[0], input_size, num_neighbors[i], filters_enc[i+1],
-                                        activation=self.activation, base_size=base_size))
+            self.conv.append(self.ConvOp(self.x_neighbors[i].shape[0], input_size, num_neighbors[i], filters_enc[i+1],
+                                        activation=self.activation))
             input_size = filters_enc[i+1]
 
         self.conv = nn.ModuleList(self.conv)   
@@ -173,14 +191,14 @@ class PaiAutoencoder(nn.Module):
         self.dconv = []
         input_size = filters_dec[0]
         for i in range(len(num_neighbors)-1):
-            self.dconv.append(PaiConvTiny(self.x_neighbors[-2-i].shape[0], input_size, num_neighbors[-2-i], filters_dec[i+1],
-                                            activation=self.activation, base_size=base_size))
+            self.dconv.append(self.ConvOp(self.x_neighbors[-2-i].shape[0], input_size, num_neighbors[-2-i], filters_dec[i+1],
+                                            activation=self.activation))
             input_size = filters_dec[i+1]  
 
             if i == len(num_neighbors)-2:
                 input_size = filters_dec[-2]
-                self.dconv.append(PaiConvTiny(self.x_neighbors[-2-i].shape[0], input_size, num_neighbors[-2-i], filters_dec[-1],
-                                                activation='identity', base_size=base_size))
+                self.dconv.append(self.ConvOp(self.x_neighbors[-2-i].shape[0], input_size, num_neighbors[-2-i], filters_dec[-1],
+                                                activation='identity'))
                     
         self.dconv = nn.ModuleList(self.dconv)
 
@@ -232,7 +250,11 @@ class PaiAutoencoder(nn.Module):
         D = self.D
         t_vertices = self.t_vertices
         for i in range(len(self.num_neighbors)-1):
-            x = self.conv[i](x, t_vertices[i], S[i].repeat(bsize,1,1))
+            if self.ConvOp == chebyshevConv:
+                x = self.conv[i](x[:, :-1],self.L[i])
+                x = torch.cat([x, torch.zeros(bsize, 1, x.shape[-1]).to(x)], dim=1)
+            else:
+                x = self.conv[i](x, t_vertices[i], S[i].repeat(bsize,1,1))
             # x = torch.matmul(D[i],x)
             x = self.poolwT(x, D[i]) if not self.is_hierarchical else self.attpoolenc[i](x) #, t_vertices[i], t_vertices[i+1]) #, t_vertices[i+1])
             # self.t_vertices[i+1] = self.attpoolenc[i](self.t_vertices[i][None]).squeeze().detach() #, t_vertices[i])#, t_vertices[i+1])
@@ -258,8 +280,16 @@ class PaiAutoencoder(nn.Module):
         for i in range(len(self.num_neighbors)-1):
             # x = torch.matmul(U[-1-i],x)
             x = self.poolwT(x, U[-1-i]) if not self.is_hierarchical else self.attpooldec[-i-1](x) #, t_vertices[-i-1], t_vertices[-i-2]) #, t_vertices[-i-2])
-            x = self.dconv[i](x, t_vertices[-2-i], S[-2-i].repeat(bsize,1,1))
-        x = self.dconv[-1](x, t_vertices[0], S[0].repeat(bsize,1,1))
+            if self.ConvOp == chebyshevConv:
+                x = self.dconv[i](x[:, :-1],self.L[-2-i])
+                x = torch.cat([x, torch.zeros(bsize, 1, x.shape[-1]).to(x)], dim=1)
+            else:
+                x = self.dconv[i](x, t_vertices[-2-i], S[-2-i].repeat(bsize,1,1))  
+        if self.ConvOp == chebyshevConv:
+            x = self.dconv[-1](x[:, :-1],self.L[0])
+            x = torch.cat([x, torch.zeros(bsize, 1, x.shape[-1]).to(x)], dim=1)
+        else:
+            x = self.dconv[-1](x, t_vertices[0], S[0].repeat(bsize,1,1))
         return x
 
     def update(self):

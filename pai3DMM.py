@@ -29,14 +29,14 @@ from utils import IOStream
 from sklearn.metrics.pairwise import euclidean_distances
 meshpackage = 'trimesh' # 'mpi-mesh', trimesh'
 
-root_dir = 'dataset/COMA-dataset'   ## 'COMA-dataset' or 'DFAUST-dataset' or 'MANO-dataset''
-is_hierarchical = True              ## 'True' or 'False' for learnable up/down sampling
+root_dir = '/media/pai/Disk/data/DFAUST-dataset'   ## 'COMA-dataset' or 'DFAUST-dataset' or 'MANO-dataset''
+is_hierarchical = False              ## 'True' or 'False' for learnable up/down sampling
 is_same_param = 0                   ## '0', '1', '2' where '1' for increaes channel and '2' for increase base 
 is_old_filter = False               ## 'False' or 'True' to use different spectral filter
 mode = 'test'                       ## 'test' or 'train' to train or test the models
 
-generative_model = 'SDConvFinal' # method name
-if not is_old_filter:
+generative_model = 'test' # method name # SDConvFinal
+if not is_old_filter: 
     generative_model = generative_model + '-x'
 if is_hierarchical:
     generative_model = 'H' + generative_model
@@ -258,7 +258,7 @@ model = PaiAutoencoder(filters_enc = args['filter_sizes_enc'],
                             t_vertices=vertices,
                             num_neighbors=kernal_size,
                             x_neighbors=Adj,
-                            D=tD, U=tU, 
+                            D=tD, U=tU, A=A,
                             is_hierarchical=is_hierarchical,
                             is_old_filter=is_old_filter,
                             base_size=base_size).to(device)
@@ -330,14 +330,14 @@ if args['mode'] == 'train':
 #%%
 if args['mode'] == 'test':
     print('loading checkpoint from file %s'%(os.path.join(checkpoint_path,args['checkpoint_file']+'.pth.tar')))
-    checkpoint_dict = torch.load(os.path.join(checkpoint_path,args['checkpoint_file']+'.pth.tar'),map_location=device)
+    # checkpoint_dict = torch.load(os.path.join(checkpoint_path,args['checkpoint_file']+'.pth.tar'),map_location=device)
     
-    print('Current Epoch is {}.'.format(checkpoint_dict['epoch']))
-    model_dict = model.state_dict()
-    pretrained_dict = checkpoint_dict['autoencoder_state_dict']
-    pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in model_dict and "U." not in k and "D." not in k}
-    model_dict.update(pretrained_dict) 
-    model.load_state_dict(pretrained_dict, strict=False)
+    # print('Current Epoch is {}.'.format(checkpoint_dict['epoch']))
+    # model_dict = model.state_dict()
+    # pretrained_dict = checkpoint_dict['autoencoder_state_dict']
+    # pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in model_dict and "U." not in k and "D." not in k}
+    # model_dict.update(pretrained_dict) 
+    # model.load_state_dict(pretrained_dict, strict=False)
     #model.load_state_dict(checkpoint_dict['autoencoder_state_dict'])
 
     predictions, norm_l1_loss, l2_loss = test_autoencoder_dataloader(device, model, dataloader_test,
