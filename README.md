@@ -31,7 +31,7 @@ $ pip install -r requirements.txt
 
 Here are the pre-processed datasets on Google Drive: [DFAUST-dataset.zip](https://drive.google.com/file/d/14UZq9JkDqjLLBiqHkSoIBZpkW6PQ_Xbi/view?usp=sharing) and [COMA-dataset.zip](https://drive.google.com/file/d/1LNhYee-h5_m1RVzguZvT2oPUsJAK28ac/view?usp=sharing). 
 
-Here are the trained models on Google Drive [DFAUST-Models.zip](https://drive.google.com/file/d/1Eq93ZX0uewJZBHuPdNeFmgCm5dl7WjLm/view?usp=sharing) and [COMA-Models.zip](https://drive.google.com/file/d/185hIebXxBDvDezteXDzXfZCdQRODo_Ck/view?usp=sharing). Please put the models in the folder as the structure below. 
+Here are the trained models and logs on Google Drive [DFAUST-Models.zip](https://drive.google.com/file/d/1Eq93ZX0uewJZBHuPdNeFmgCm5dl7WjLm/view?usp=sharing) and [COMA-Models.zip](https://drive.google.com/file/d/185hIebXxBDvDezteXDzXfZCdQRODo_Ck/view?usp=sharing). Please put the models in the folder as the structure below. 
 
 ### Preprocessing for your custom dataset:
 
@@ -74,10 +74,15 @@ The following is the organization of the dataset directories expected by the cod
 
 
 #### Training and Testing
-
+Config line 32-36 in pai3DMM.py
 ```
-args['mode'] = 'train' or 'test'
-
+root_dir = 'dataset/COMA-dataset'   ## 'COMA-dataset' or 'DFAUST-dataset' or 'MANO-dataset''
+is_hierarchical = True              ## 'True' or 'False' for learnable up/down sampling
+is_same_param = 0                   ## '0', '1', '2' where '1' for increaes channel and '2' for increase base 
+is_old_filter = False               ## 'False' or 'True' to use different spectral filter
+mode = 'test'                       ## 'test' or 'train' to train or test the models
+```
+```
 python pai3DMM.py
 ```
 
