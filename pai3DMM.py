@@ -33,9 +33,9 @@ from compare.spiral_plus_utils import preprocess_spiral
 
 meshpackage = 'trimesh' # 'mpi-mesh', trimesh'
 
-root_dir = 'dataset/COMA-dataset'   ## 'COMA-dataset' or 'DFAUST-dataset' or 'MANO-dataset''
+root_dir = 'dataset/DFAUST-dataset'   ## 'COMA-dataset' or 'DFAUST-dataset' or 'MANO-dataset''
 is_hierarchical = False             ## 'True' or 'False' for learnable up/down sampling
-is_same_param = 1                   ## '0', '1', '2' where '1' for increaes channel and '2' for increase base 
+is_same_param = 0                   ## '0', '1', '2' where '1' for increaes channel and '2' for increase base 
 is_old_filter = False               ## 'False' or 'True' to use different spectral filter
 mode = 'train'                       ## 'test' or 'train' to train or test the models
 ConvOp = SpiralConv                 ## PaiConv, PaiConvTiny, SpiralConv, chebyshevConv, FeaStConv2
@@ -407,15 +407,15 @@ if args['mode'] == 'train':
 #%%
 if args['mode'] == 'test':
     print('loading checkpoint from file %s'%(os.path.join(checkpoint_path,args['checkpoint_file']+'.pth.tar')))
-    # checkpoint_dict = torch.load(os.path.join(checkpoint_path,args['checkpoint_file']+'.pth.tar'),map_location=device)
+    checkpoint_dict = torch.load(os.path.join(checkpoint_path,args['checkpoint_file']+'.pth.tar'),map_location=device)
     
-    # print('Current Epoch is {}.'.format(checkpoint_dict['epoch']))
-    # model_dict = model.state_dict()
-    # pretrained_dict = checkpoint_dict['autoencoder_state_dict']
-    # pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in model_dict and "U." not in k and "D." not in k}
-    # model_dict.update(pretrained_dict) 
-    # model.load_state_dict(pretrained_dict, strict=False)
-    #model.load_state_dict(checkpoint_dict['autoencoder_state_dict'])
+    print('Current Epoch is {}.'.format(checkpoint_dict['epoch']))
+    model_dict = model.state_dict()
+    pretrained_dict = checkpoint_dict['autoencoder_state_dict']
+    pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in model_dict and "U." not in k and "D." not in k}
+    model_dict.update(pretrained_dict) 
+    model.load_state_dict(pretrained_dict, strict=False)
+    # model.load_state_dict(checkpoint_dict['autoencoder_state_dict'])
 
     predictions, norm_l1_loss, l2_loss = test_autoencoder_dataloader(device, model, dataloader_test,
                                                                      shapedata, mm_constant = 1000)
