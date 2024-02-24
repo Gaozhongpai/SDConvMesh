@@ -6,15 +6,15 @@ plt.rcParams["font.family"] = "Times New Roman"
 plt.rcParams["font.size"] = 15
 # font = {'family' : 'Times New Roman', 'size': 10}
 # matplotlib.rc('font', **font)
-x = [2.643, 3.582, 3.173, 3.235, 3.235, 4.784, 2.211]
+x = [2.021, 3.582, 3.173, 3.235, 3.235, 4.784, 1.697]
 # x = [53, 61, 62, 64 ,90]
-y = [5.258, 5.238, 3.492, 3.884, 3.330, 6.096, 5.000]
+y = [5.258, 5.238, 3.492, 3.884, 3.330, 6.096, 5.491]
 s = [446, 361, 2478, 518, 526, 441, 437]
 n = ["Spiral", "COMA", "LSA-Conv", "SDConv* (ours)", "HSDConv (ours)", "FeaStNet", "Spiral++"]
 colors = ['red', 'green', 'blue', 'orange', 'purple', 'brown', 'pink']
 scatter = plt.scatter(x, y, s=s, color=colors)
 # Setting x and y axes limits
-plt.xlim(1.5, 6.5)  # Set the start and end points for the x-axis
+plt.xlim(1.25, 6.5)  # Set the start and end points for the x-axis
 plt.ylim(3, 6.5)  # Set the start and end points for the y-axis
 
 # produce a legend with a cross section of sizes from the scatter
