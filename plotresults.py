@@ -11,7 +11,7 @@ x = [2.021, 3.582, 3.173, 3.235, 3.235, 4.784, 1.697]
 y = [5.258, 5.238, 3.492, 3.884, 3.330, 6.096, 5.491]
 s = [446, 361, 2478, 518, 526, 441, 437]
 n = ["Spiral", "COMA", "LSA-Conv", "SDConv* (ours)", "HSDConv (ours)", "FeaStNet", "Spiral++"]
-colors = ['red', 'green', 'blue', 'orange', 'purple', 'brown', 'pink']
+colors = ['orange', 'green', 'blue', 'deeppink', 'red', 'purple', 'goldenrod']
 scatter = plt.scatter(x, y, s=s, color=colors)
 # Setting x and y axes limits
 plt.xlim(1.25, 6.5)  # Set the start and end points for the x-axis
@@ -26,7 +26,7 @@ plt.annotate(n[0], # this is the text
                 (x[0],y[0]), # this is the point to label
                 color=colors[0],
                 textcoords="offset points", # how to position the text
-                xytext=(0,15), # distance from text to points (x,y)
+                xytext=(10,15), # distance from text to points (x,y)
                 ha='center') # horizontal alignment can be left, right or center
 plt.annotate(n[1], # this is the text
                 (x[1],y[1]), # this is the point to label
