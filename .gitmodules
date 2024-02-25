@@ -1,0 +1,3 @@
+[submodule "compare/MeshConvolution"]
+	path = compare/MeshConvolution
+	url = https://github.com/Gaozhongpai/MeshConvolution.git
