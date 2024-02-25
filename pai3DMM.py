@@ -34,12 +34,12 @@ from compare.spiral_plus_utils import preprocess_spiral
 meshpackage = 'trimesh' # 'mpi-mesh', trimesh'
 
 root_dir = 'dataset/DFAUST-dataset'   ## 'COMA-dataset' or 'DFAUST-dataset' or 'MANO-dataset''
-is_hierarchical = False             ## 'True' or 'False' for learnable up/down sampling
+is_hierarchical = False             ## (HSDConv) 'True' or 'False' for learnable up/down sampling
 is_same_param = 0                   ## '0', '1', '2' where '1' for increaes channel and '2' for increase base 
 is_old_filter = False               ## 'False' or 'True' to use different spectral filter
 mode = 'train'                       ## 'test' or 'train' to train or test the models
-ConvOp = SpiralConv                 ## PaiConv, PaiConvTiny, SpiralConv, chebyshevConv, FeaStConv2
-is_spiralPlusPlus = True
+ConvOp = SpiralConv                 ## PaiConv (LSA-Conv), PaiConvTiny (SDConv), SpiralConv, chebyshevConv (COMA), FeaStConv2
+is_spiralPlusPlus = True            ## SpiralPlusPlus
 
 generative_model = 'Spiral' # method name # SDConvFinal
 if is_spiralPlusPlus and ConvOp == SpiralConv:

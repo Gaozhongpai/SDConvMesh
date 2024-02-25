@@ -13,7 +13,10 @@ import numpy as np
 from utils import laplacian, sparse_mx_to_torch_sparse_tensor
 from compare.convs import chebyshevConv
 
-class PaiConv(nn.Module):
+class PaiConv(nn.Module): ## i.e., LSA-Conv
+    """
+    # https://ojs.aaai.org/index.php/AAAI/article/view/16229
+    """
     def __init__(self, num_pts, in_c, num_neighbor, out_c, activation='elu',bias=True): # ,device=None):
         super(PaiConv,self).__init__()
         self.in_c = in_c
@@ -52,7 +55,10 @@ class PaiConv(nn.Module):
         x_res = self.mlp_out(x.view(-1, self.in_c)).view(bsize, -1, self.out_c)
         return out_feat + x_res
 
-class PaiConvTiny(nn.Module):
+class PaiConvTiny(nn.Module): ## i.e., SDConv
+    """
+    # https://www.ijcai.org/proceedings/2021/0095.pdf
+    """
     def __init__(self, num_pts, in_c, num_neighbor, out_c,activation='relu',bias=True,base_size=32): # ,device=None):
         super(PaiConvTiny,self).__init__()
         self.in_c = in_c
