@@ -4,7 +4,7 @@ import math
 import pdb
 import copy
 from numpy import inf
-from sparsemax import Sparsemax
+# from sparsemax import Sparsemax
 import torch.nn.functional as F
 import math
 from attpool import AttPool, PaiAttPool, PaiAttPool2, PaiAttPool3
