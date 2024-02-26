@@ -1,7 +1,7 @@
 
 
 # Learning Spectral Dictionary for Local Representation of Mesh
-![PaiNeural3DMM architecture](images/architecture.png "PaiNeural3DMM architecture")
+![Results](images/complexity1.png "Results")
 This repository is the official implementation of my paper: "Learning Spectral Dictionary for Local Representation of Mesh"
 # Project Abstract 
 Learning mesh representation is important for many 3D tasks. Conventional convolution for regular data (i.e., images) cannot directly be applied to meshes since each vertex's neighbors are unordered. Previous methods use isotropic filters or predefined local coordinate systems or learning weighting matrices for each template vertex to overcome the irregularity. Learning weighting matrices to resample the vertex's neighbors into an implicit canonical order is the most effective way to capture the local structure of each vertex. However, learning weighting matrices for each vertex increases the model size linearly with the vertex number. Thus, large parameters are required for high-resolution 3D shapes, which is not favorable for many applications. In this paper, we learn spectral dictionary (i.e., bases) for the weighting matrices such that the model size is independent of the resolution of 3D shapes. The coefficients of the weighting matrix bases are learned from the spectral features of the template and its hierarchical levels in a weight-sharing manner. Furthermore, we introduce an adaptive sampling method that learns the hierarchical mapping matrices directly to improve the performance without increasing the model size at the inference stage. Comprehensive experiments demonstrate that our model produces state-of-the-art results with much smaller model size.
@@ -10,7 +10,6 @@ Learning mesh representation is important for many 3D tasks. Conventional convol
 
 ![Pai-Conv](images/pai-gcn.png "Pai-Conv operation")
 
-![Results](images/complexity1.png "Results")
 
 # Repository Requirements
 

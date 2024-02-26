@@ -41,7 +41,7 @@ plt.annotate(n[0], # this is the text
                 (x[0],y[0]), # this is the point to label
                 color=colors[0],
                 textcoords="offset points", # how to position the text
-                xytext=(10,15), # distance from text to points (x,y)
+                xytext=(10,16), # distance from text to points (x,y)
                 ha='center') # horizontal alignment can be left, right or center
 plt.annotate(n[1], # this is the text
                 (x[1],y[1]), # this is the point to label
@@ -73,7 +73,7 @@ plt.annotate(n[5], # this is the text
                 (x[5],y[5]), # this is the point to label
                 color=colors[5],
                 textcoords="offset points", # how to position the text
-                xytext=(0,-24), # distance from text to points (x,y)
+                xytext=(0,16), # distance from text to points (x,y)
                 ha='center') # horizontal alignment can be left, right or center
 plt.annotate(n[6], # this is the text
                 (x[6],y[6]), # this is the point to label
@@ -97,13 +97,13 @@ plt.annotate(n[9], # this is the text
                 (x[9],y[9]), # this is the point to label
                 color=colors[9],
                 textcoords="offset points", # how to position the text
-                xytext=(5,18), # distance from text to points (x,y)
+                xytext=(10,18), # distance from text to points (x,y)
                 ha='center') # horizontal alignment can be left, right or center
 plt.xlabel("Time of inferring test set (s)")
 plt.ylabel("L2 errors (mm)")
 
-plt.savefig('images/complexity1.png', dpi=300, bbox_inches='tight', transparent=False)
-plt.savefig('images/complexity.pdf', format='pdf', bbox_inches='tight')
+plt.savefig('../images/complexity1.png', dpi=300, bbox_inches='tight', transparent=False)
+plt.savefig('../images/complexity.pdf', format='pdf', bbox_inches='tight')
 # plt.show()
 
 
