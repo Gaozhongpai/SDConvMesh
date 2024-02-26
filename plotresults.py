@@ -102,7 +102,8 @@ plt.annotate(n[9], # this is the text
 plt.xlabel("Time of inferring test set (s)")
 plt.ylabel("L2 errors (mm)")
 
-plt.savefig('complexity.pdf', format='pdf', bbox_inches='tight')
+plt.savefig('images/complexity1.png', dpi=300, bbox_inches='tight', transparent=False)
+plt.savefig('images/complexity.pdf', format='pdf', bbox_inches='tight')
 # plt.show()
 
 
