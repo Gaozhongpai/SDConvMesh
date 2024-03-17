@@ -278,12 +278,13 @@ class PaiAutoencoder(nn.Module):
             # x = torch.matmul(D[i],x)
             x = self.poolwT(x, D[i]) if not self.is_hierarchical else self.attpoolenc[i](x) #, t_vertices[i], t_vertices[i+1]) #, t_vertices[i+1])
             # self.t_vertices[i+1] = self.attpoolenc[i](self.t_vertices[i][None]).squeeze().detach() #, t_vertices[i])#, t_vertices[i+1])
-        # x = self.conv[-1](x, t_vertices[-1], S[-1].repeat(bsize,1,1))
+        ####### for visualization ##########
         # x[5] = x[2]
         # x[5,4:6] = x[21, 4:6]  ## 34
         # x[5,12:15] = x[21, 12:15]
         # x[5,17:20] = x[34, 17:20]  ## 34
         # x[5,23:27] = x[34, 23:27]
+        ####################################
         x = x.view(bsize,-1)
         # x = x[:, :-1].view(bsize,-1)
         return self.fc_latent_enc(x)
@@ -333,8 +334,10 @@ class PaiAutoencoder(nn.Module):
         if self.is_hierarchical and self.t_vertices:
             self.update()
         z = self.encode(x)
+        ####### for visualization ##########
         # z[0] = z[18] - z[7] + z[8]
         # z[0], z[1] = z[18], z[29] ## z[23], z[26]
         # z[2:7] = alpha * z[0:1] + (1-alpha)*z[1:2]
+        ####################################
         x = self.decode(z)
         return x

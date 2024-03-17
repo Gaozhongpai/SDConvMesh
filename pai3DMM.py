@@ -35,9 +35,9 @@ meshpackage = 'trimesh' # 'mpi-mesh', trimesh'
 
 root_dir = 'dataset/DFAUST-dataset'   ## 'COMA-dataset' or 'DFAUST-dataset' or 'MANO-dataset''
 is_hierarchical = False             ## (HSDConv) 'True' or 'False' for learnable up/down sampling
-is_same_param = 0                   ## '0', '1', '2' where '1' for increaes channel and '2' for increase base 
+is_same_param = False                   ## '0', '1', '2' where '1' for increaes channel and '2' for increase base 
 is_old_filter = False               ## 'False' or 'True' to use different spectral filter
-mode = 'train'                       ## 'test' or 'train' to train or test the models
+mode = 'test'                       ## 'test' or 'train' to train or test the models
 ConvOp = SpiralConv                 ## PaiConv (LSA-Conv), PaiConvTiny (SDConv), SpiralConv, chebyshevConv (COMA), FeaStConv2
 is_spiralPlusPlus = False            ## SpiralPlusPlus
 is_spiralAdaptive = True
@@ -51,10 +51,9 @@ if not is_old_filter:
     generative_model = generative_model + '-x'
 if is_hierarchical:
     generative_model = 'H' + generative_model
-if is_same_param == 1:
+if is_same_param:
     generative_model = generative_model + '-param'
-elif is_same_param == 2:
-    generative_model = generative_model + '-paramv2'
+    
 name = 'sliced'
 GPU = True
 device_idx = 0
@@ -79,7 +78,7 @@ step_sizes = [2, 2, 1, 1, 1]
 
 filter_sizes_enc = [3, 16, 32, 64, 128]
 filter_sizes_dec = [128, 64, 32, 32, 16, 3]
-if is_same_param == 1: 
+if is_same_param: 
     if "COMA" in root_dir: ## COMA
         filter_sizes_enc = [3, 32, 45, 64, 128]
         filter_sizes_dec = [128, 80, 48, 32, 32, 3]
@@ -92,6 +91,10 @@ if is_same_param == 1:
                 # spiral++
                 filter_sizes_enc = [3, 48, 60, 64, 128]
                 filter_sizes_dec = [128, 96, 64, 64, 32, 3]
+            elif is_spiralAdaptive:
+                # Adaptive
+                filter_sizes_enc = [3, 48, 60, 64, 128]
+                filter_sizes_dec = [128, 80, 64, 48, 32, 3]
             
         elif ConvOp == chebyshevConv:
             # COMA
@@ -110,16 +113,20 @@ if is_same_param == 1:
                 # spiral++
                 filter_sizes_enc = [3, 32, 64, 80, 128]
                 filter_sizes_dec = [128, 112, 64, 64, 36, 3]
+            elif is_spiralAdaptive:
+                # Adaptive
+                filter_sizes_enc = [3, 32, 64, 64, 128]
+                filter_sizes_dec = [128, 96, 68, 64, 36, 3]
         elif ConvOp == chebyshevConv:
             filter_sizes_enc = [3, 64, 96, 112, 128]
             filter_sizes_dec = [128, 112, 96, 96, 64, 3]
 
 base_size = 32
-if is_same_param == 2: 
-    if "COMA" in root_dir: ## COMA
-        base_size = 78
-    elif "DFAUST" in root_dir: ## dfaustData
-        base_size = 112
+# if is_same_param == 2: 
+#     if "COMA" in root_dir: ## COMA
+#         base_size = 78
+#     elif "DFAUST" in root_dir: ## dfaustData
+#         base_size = 112
 
 args = {'generative_model': generative_model,
         'name': name, 'data': os.path.join(root_dir, 'Processed',name),
