@@ -258,7 +258,10 @@ if ConvOp == SpiralConv:
             spiral_indice[:-1] = tspirals[i]
             tspirals[i] = torch.from_numpy(spiral_indice).long()
         if is_spiralAdaptive:
-            seq_length = [1, 1, 312, 78, 19]
+            if "DFAUST" in root_dir: ## COMA 
+                seq_length = [1, 1, 430, 107, 26]
+            if "COMA" in root_dir: ## COMA
+                seq_length = [1, 1, 312, 78, 19]
             dynamic_tspirals = [preprocess_spiral(Mi.faces, seq_length=seq_length[i], vertices=Mi.vertices).cuda()  for i, Mi in enumerate(M)]
             tspirals = tspirals + dynamic_tspirals      
     else: 
