@@ -12,6 +12,7 @@ from device import device
 import numpy as np
 from utils import laplacian, sparse_mx_to_torch_sparse_tensor
 from compare.convs import chebyshevConv
+from compare.adaptive_spiralconv import Adaptive_SpiralConv
 
 class PaiConv(nn.Module): ## i.e., LSA-Conv
     """
@@ -125,11 +126,15 @@ class PaiAutoencoder(nn.Module):
     def __init__(self, filters_enc, filters_dec, latent_size, 
                  t_vertices, sizes, num_neighbors, x_neighbors, D, U, A, 
                  ConvOp, activation = 'elu', 
-                 is_hierarchical=True, is_old_filter=False, base_size=32):
+                 is_hierarchical=True, is_old_filter=False, is_spiralAdaptive=False, base_size=32):
         super(PaiAutoencoder, self).__init__()
         self.latent_size = latent_size
         self.sizes = sizes
-        self.x_neighbors = x_neighbors # [torch.cat([torch.cat([torch.arange(x.shape[0]-1), torch.tensor([-1])]).unsqueeze(1), x], 1) for x in x_neighbors]
+        if is_spiralAdaptive:
+            self.x_neighbors = [x.cuda() for x in x_neighbors[:len(x_neighbors)//2]]
+            self.x_neighbors_dynamic = [x.cuda() for x in x_neighbors[len(x_neighbors)//2:]]
+        else:
+            self.x_neighbors = x_neighbors # [torch.cat([torch.cat([torch.arange(x.shape[0]-1), torch.tensor([-1])]).unsqueeze(1), x], 1) for x in x_neighbors]
         #self.x_neighbors = [x.float().cuda() for x in x_neighbors]
         self.filters_enc = filters_enc
         self.filters_dec = filters_dec
@@ -195,7 +200,11 @@ class PaiAutoencoder(nn.Module):
         self.conv = []
         input_size = filters_enc[0]
         for i in range(len(num_neighbors)-1):
-            self.conv.append(self.ConvOp(self.x_neighbors[i].shape[0], input_size, num_neighbors[i], filters_enc[i+1],
+            if is_spiralAdaptive and i > 1:
+                self.conv.append(Adaptive_SpiralConv(input_size, filters_enc[i+1], self.x_neighbors[i][:-1], 
+                                                     self.x_neighbors_dynamic[i]))
+            else:
+                self.conv.append(self.ConvOp(self.x_neighbors[i].shape[0], input_size, num_neighbors[i], filters_enc[i+1],
                                         activation=self.activation))
             input_size = filters_enc[i+1]
 
@@ -207,7 +216,11 @@ class PaiAutoencoder(nn.Module):
         self.dconv = []
         input_size = filters_dec[0]
         for i in range(len(num_neighbors)-1):
-            self.dconv.append(self.ConvOp(self.x_neighbors[-2-i].shape[0], input_size, num_neighbors[-2-i], filters_dec[i+1],
+            if is_spiralAdaptive and i < 2:
+                self.dconv.append(Adaptive_SpiralConv(input_size, filters_dec[i+1], self.x_neighbors[-2-i][:-1], 
+                                                     self.x_neighbors_dynamic[-2-i]))
+            else:
+                self.dconv.append(self.ConvOp(self.x_neighbors[-2-i].shape[0], input_size, num_neighbors[-2-i], filters_dec[i+1],
                                             activation=self.activation))
             input_size = filters_dec[i+1]  
 

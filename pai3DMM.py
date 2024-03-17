@@ -39,11 +39,14 @@ is_same_param = 0                   ## '0', '1', '2' where '1' for increaes chan
 is_old_filter = False               ## 'False' or 'True' to use different spectral filter
 mode = 'train'                       ## 'test' or 'train' to train or test the models
 ConvOp = SpiralConv                 ## PaiConv (LSA-Conv), PaiConvTiny (SDConv), SpiralConv, chebyshevConv (COMA), FeaStConv2
-is_spiralPlusPlus = True            ## SpiralPlusPlus
+is_spiralPlusPlus = False            ## SpiralPlusPlus
+is_spiralAdaptive = True
 
 generative_model = 'Spiral' # method name # SDConvFinal
 if is_spiralPlusPlus and ConvOp == SpiralConv:
     generative_model = generative_model + 'PlusPlus' 
+if is_spiralAdaptive and ConvOp == SpiralConv:
+    generative_model = generative_model + 'Adaptive' 
 if not is_old_filter: 
     generative_model = generative_model + '-x'
 if is_hierarchical:
@@ -246,15 +249,18 @@ Adj = [torch.cat([torch.cat([torch.arange(x.shape[0]-1), torch.tensor([-1])]).un
 
 
 if ConvOp == SpiralConv:
-    spiral_sizes = []
-    if is_spiralPlusPlus:
-        seq_length = 9
-        tspirals = [preprocess_spiral(Mi.faces, seq_length=seq_length) for Mi in M]
+    spiral_sizes = [9, 9, 9, 9, 9]
+    if is_spiralPlusPlus or is_spiralAdaptive:
+        seq_length = [9, 9, 9, 9, 9]
+        tspirals = [preprocess_spiral(Mi.faces, seq_length=seq_length[i], vertices=Mi.vertices) for i, Mi in enumerate(M)]
         for i in range(len(tspirals)):
             spiral_indice = -1 * np.ones((tspirals[i].shape[0]+1,tspirals[i].shape[1]))
             spiral_indice[:-1] = tspirals[i]
             tspirals[i] = torch.from_numpy(spiral_indice).long()
-            spiral_sizes.append(seq_length)
+        if is_spiralAdaptive:
+            seq_length = [1, 1, 312, 78, 19]
+            dynamic_tspirals = [preprocess_spiral(Mi.faces, seq_length=seq_length[i], vertices=Mi.vertices).cuda()  for i, Mi in enumerate(M)]
+            tspirals = tspirals + dynamic_tspirals      
     else: 
         ## for Spiral
         if "DFAUST" in root_dir: ## COMA
@@ -338,6 +344,7 @@ model = PaiAutoencoder(filters_enc = args['filter_sizes_enc'],
                             ConvOp=ConvOp,
                             is_hierarchical=is_hierarchical,
                             is_old_filter=is_old_filter,
+                            is_spiralAdaptive=is_spiralAdaptive,
                             base_size=base_size).to(device)
 # model = torch.nn.DataParallel(model)
 
