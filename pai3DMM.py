@@ -31,7 +31,7 @@ meshpackage = 'trimesh' # 'mpi-mesh', trimesh'
 
 root_dir = 'dataset/COMA-dataset'   ## 'COMA-dataset' or 'DFAUST-dataset' or 'MANO-dataset''
 is_hierarchical = True              ## 'True' or 'False' for learnable up/down sampling
-is_same_param = 0                   ## '0', '1', '2' where '1' for increaes channel and '2' for increase base 
+is_same_param = False                   ## '0', '1', '2' where '1' for increaes channel and '2' for increase base 
 is_old_filter = False               ## 'False' or 'True' to use different spectral filter
 mode = 'test'                       ## 'test' or 'train' to train or test the models
 
@@ -40,10 +40,9 @@ if not is_old_filter:
     generative_model = generative_model + '-x'
 if is_hierarchical:
     generative_model = 'H' + generative_model
-if is_same_param == 1:
+if is_same_param:
     generative_model = generative_model + '-param'
-elif is_same_param == 2:
-    generative_model = generative_model + '-paramv2'
+    
 name = 'sliced'
 GPU = True
 device_idx = 0
@@ -68,7 +67,7 @@ step_sizes = [2, 2, 1, 1, 1]
 
 filter_sizes_enc = [3, 16, 32, 64, 128]
 filter_sizes_dec = [128, 64, 32, 32, 16, 3]
-if is_same_param == 1: 
+if is_same_param: 
     if "COMA" in root_dir: ## COMA
         filter_sizes_enc = [3, 32, 45, 64, 128]
         filter_sizes_dec = [128, 80, 48, 32, 32, 3]
@@ -77,11 +76,11 @@ if is_same_param == 1:
         filter_sizes_dec = [128, 80, 64, 40, 32, 3]
 
 base_size = 32
-if is_same_param == 2: 
-    if "COMA" in root_dir: ## COMA
-        base_size = 78
-    elif "DFAUST" in root_dir: ## dfaustData
-        base_size = 112
+# if is_same_param == 2: 
+#     if "COMA" in root_dir: ## COMA
+#         base_size = 78
+#     elif "DFAUST" in root_dir: ## dfaustData
+#         base_size = 112
 
 args = {'generative_model': generative_model,
         'name': name, 'data': os.path.join(root_dir, 'Processed',name),

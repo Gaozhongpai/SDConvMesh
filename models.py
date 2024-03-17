@@ -12,7 +12,11 @@ from math import ceil, sqrt
 from device import device
 import numpy as np
 
-class PaiConv(nn.Module):
+class PaiConv(nn.Module): ## LSA-Conv
+    '''
+    Gao, Zhongpai, et al. "Learning local neighboring structure for robust 3D shape representation." 
+    Proceedings of the AAAI conference on artificial intelligence. Vol. 35. No. 2. 2021.
+    '''
     def __init__(self, num_pts, in_c, num_neighbor, out_c, activation='elu',bias=True): # ,device=None):
         super(PaiConv,self).__init__()
         self.in_c = in_c
@@ -51,7 +55,11 @@ class PaiConv(nn.Module):
         x_res = self.mlp_out(x.view(-1, self.in_c)).view(bsize, -1, self.out_c)
         return out_feat + x_res
 
-class PaiConvTiny(nn.Module):
+class PaiConvTiny(nn.Module): ## SDConv or HSDConv
+    '''
+    Gao, Z., Yan, J., Zhai, G. and Yang, X., 2021, August. 
+    Learning Spectral Dictionary for Local Representation of Mesh. In IJCAI (pp. 685-692).
+    '''
     def __init__(self, num_pts, in_c, num_neighbor, out_c,activation='relu',bias=True,base_size=32): # ,device=None):
         super(PaiConvTiny,self).__init__()
         self.in_c = in_c
