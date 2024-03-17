@@ -1,6 +1,5 @@
 
 #%%
-import matplotlib
 import matplotlib.pyplot as plt 
 from matplotlib.lines import Line2D
 import numpy as np 
@@ -9,12 +8,14 @@ plt.rcParams["font.family"] = "Times New Roman"
 plt.rcParams["font.size"] = 15
 # font = {'family' : 'Times New Roman', 'size': 10}
 # matplotlib.rc('font', **font)
-x = [2.021, 3.582, 3.173, 3.235, 3.235, 4.784, 1.697, 2.637, 2.647, 3.061]
+x = [2.021, 3.582, 3.173, 3.235, 3.235, 4.784, 1.697, 2.637, 2.647, 3.061, 3.051]
 # x = [53, 61, 62, 64 ,90]
-y = [5.258, 5.238, 3.492, 3.884, 3.330, 6.096, 5.491, 4.162, 6.274, 4.544]
-s = [446, 361, 2478, 518, 526, 441, 437, 2646, 650, 644]
-n = ["Spiral", "COMA", "LSA-Conv", "SDConv* (ours)", "HSDConv (ours)", "FeaStNet", "Spiral++", "VCMeshConv", "VCMeshConv (B=4)", "LSA-small (B=8)"]
-colors = ['orange', 'green', 'blue', 'deeppink', 'red', 'purple', 'goldenrod', "darkcyan", "lightseagreen", "cornflowerblue"]
+y = [5.258, 5.238, 3.492, 3.884, 3.4, 6.096, 5.491, 4.162, 6.274, 4.544, 4.289]
+s = [446, 361, 2478, 518, 526, 441, 437, 2646, 650, 644, 477]
+n = ["Spiral", "COMA", "LSA-Conv", "SDConv* (ours)", "HSDConv (ours)", "FeaStNet",
+     "Spiral++", "VCMeshConv", "VCMeshConv (B=4)", "LSA-small (B=8)", "Adaptive-Spiral"]
+colors = ['orange', 'green', 'blue', 'deeppink', 'red', 'purple', 
+          'goldenrod', "darkcyan", "lightseagreen", "cornflowerblue", 'darkgoldenrod']
 scatter = plt.scatter(x, y, s=s, color=colors)
 # Setting x and y axes limits
 plt.xlim(1.25, 6.5)  # Set the start and end points for the x-axis
@@ -53,14 +54,14 @@ plt.annotate(n[2], # this is the text
                 (x[2],y[2]), # this is the point to label
                 color=colors[2],
                 textcoords="offset points", # how to position the text
-                xytext=(64,0), # distance from text to points (x,y)
+                xytext=(64,5), # distance from text to points (x,y)
                 ha='center') # horizontal alignment can be left, right or center
 plt.annotate(n[3], # this is the text
                 (x[3],y[3]), # this is the point to label
                 fontweight='bold',
                 color=colors[3],
                 textcoords="offset points", # how to position the text
-                xytext=(68,0), # distance from text to points (x,y)
+                xytext=(68,-3), # distance from text to points (x,y)
                 ha='center') # horizontal alignment can be left, right or center
 plt.annotate(n[4], # this is the text
                 (x[4],y[4]), # this is the point to label
@@ -97,13 +98,19 @@ plt.annotate(n[9], # this is the text
                 (x[9],y[9]), # this is the point to label
                 color=colors[9],
                 textcoords="offset points", # how to position the text
-                xytext=(10,18), # distance from text to points (x,y)
+                xytext=(67,0), # distance from text to points (x,y)
+                ha='center') # horizontal alignment can be left, right or center
+plt.annotate(n[10], # this is the text
+                (x[10],y[10]), # this is the point to label
+                color=colors[10],
+                textcoords="offset points", # how to position the text
+                xytext=(65,-3), # distance from text to points (x,y)
                 ha='center') # horizontal alignment can be left, right or center
 plt.xlabel("Time of inferring test set (s)")
 plt.ylabel("L2 errors (mm)")
 
-plt.savefig('../images/complexity1.png', dpi=300, bbox_inches='tight', transparent=False)
-plt.savefig('../images/complexity.pdf', format='pdf', bbox_inches='tight')
+plt.savefig('images/complexity1.png', dpi=300, bbox_inches='tight', transparent=False)
+plt.savefig('images/complexity.pdf', format='pdf', bbox_inches='tight')
 # plt.show()
 
 

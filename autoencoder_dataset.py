@@ -16,7 +16,7 @@ class autoencoder_dataset(Dataset):
         
         self.paths = np.load(os.path.join(root_dir, 'paths_'+points_dataset+'.npy'))
         
-        self.loadwhole = True
+        self.loadwhole = False
         self.verts_inits = []
         if self.loadwhole:
             for basename in tqdm(self.paths):

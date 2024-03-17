@@ -56,8 +56,8 @@ def test_autoencoder_dataloader(device, model, dataloader_test, shapedata, mm_co
                 # cv2.imwrite('meshes/'+str(i).zfill(3)+str(j).zfill(3)+'.png', color)
 
                 # pyrender.Viewer(scene, use_raymond_lighting=True)
-            x = (x * shapedata_std + shapedata_mean) * mm_constant
-            l2_loss+= torch.mean(torch.sqrt(torch.sum((x_recon - x)**2,dim=2)))*x.shape[0]/float(len(dataloader_test.dataset))
+            # x = (x * shapedata_std + shapedata_mean) * mm_constant
+            # l2_loss+= torch.mean(torch.sqrt(torch.sum((x_recon - x)**2,dim=2)))*x.shape[0]/float(len(dataloader_test.dataset))
         print("--- %s seconds ---" % (time.time() - start_time))
         predictions = predictions.cpu()
         # l1_loss = l1_loss.item()
